@@ -7,68 +7,16 @@ import (
 	"strconv"
 )
 
-type TSPInstance struct {
-	Size   int
-	Matrix [][]int
-}
-
-func ReadFromFile(filename string) (TSPInstance, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return TSPInstance{}, err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords) // Ignoruje spacje i entery, czyta tylko liczby
-
-	if !scanner.Scan() {
-		return TSPInstance{}, fmt.Errorf("plik jest pusty lub uszkodzony")
-	}
-	size, _ := strconv.Atoi(scanner.Text())
-
-	// 2. Alokacja dynamiczna macierzy o rozmiarze size x size
-	matrix := make([][]int, size)
-	for i := range matrix {
-		matrix[i] = make([]int, size)
-	}
-
-	// 3. Wczytywanie wartości macierzy
-	for i := 0; i < size; i++ {
-		for j := 0; j < size; j++ {
-			if scanner.Scan() {
-				val, _ := strconv.Atoi(scanner.Text())
-				matrix[i][j] = val
-			}
-		}
-	}
-
-	return TSPInstance{Size: size, Matrix: matrix}, nil
-}
-
-
-func (t TSPInstance) Display() {
-	if t.Size == 0 {
-		fmt.Println("Błąd: Macierz jest pusta. Najpierw wczytaj dane.")
-		return
-	}
-
-	fmt.Printf("\n--- Macierz Kosztów (Rozmiar: %d) ---\n", t.Size)
-	for i := 0; i < t.Size; i++ {
-		for j := 0; j < t.Size; j++ {
-			fmt.Printf("%4d ", t.Matrix[i][j])
-		}
-		fmt.Println()
-	}
-}
-
 func main() {
 	var instance TSPInstance
 	reader := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Println("\n1. Wczytaj z pliku")
-		fmt.Println("2. Wyświetl macierz")
+		fmt.Println("\n--- MENU PROJEKTU PEA ---")
+		fmt.Println("1. Wczytaj dane z pliku")
+		fmt.Println("2. Wygeneruj dane losowe")
+		fmt.Println("3. Wyświetl macierz")
+		fmt.Println("4. Uruchom algorytm Brute-Force")
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
@@ -80,7 +28,7 @@ func main() {
 			fmt.Print("Podaj nazwę pliku (np. dane.txt): ")
 			reader.Scan()
 			path := reader.Text()
-			
+
 			var err error
 			instance, err = ReadFromFile(path)
 			if err != nil {
@@ -90,14 +38,48 @@ func main() {
 			}
 
 		case "2":
+			fmt.Print("Podaj rozmiar N (liczbę miast): ")
+			reader.Scan()
+			nStr := reader.Text()
+			n, err := strconv.Atoi(nStr)
+			if err != nil || n <= 0 {
+				fmt.Println("Błąd: podano nieprawidłowy rozmiar!")
+			} else {
+				instance = GenerateRandom(n)
+				fmt.Printf("Wygenerowano losową macierz o rozmiarze %d.\n", n)
+			}
+
+		case "3":
 			instance.Display()
+
+		case "4":
+			if instance.Size == 0 {
+				fmt.Println("Błąd: Najpierw wczytaj lub wygeneruj dane wejściowe!")
+				continue
+			}
+			fmt.Println("Trwają obliczenia Brute-Force...")
+			
+			// Wywołanie funkcji z pliku bruteforce.go
+			res := instance.SolveBruteForce()
+
+			fmt.Printf("\n--- WYNIKI BRUTE-FORCE ---\n")
+			fmt.Printf("Koszt najkrótszej trasy: %d\n", res.MinCost)
+			
+			fmt.Print("Ścieżka: ")
+			for i, city := range res.Path {
+				fmt.Print(city)
+				if i < len(res.Path)-1 {
+					fmt.Print(" -> ")
+				}
+			}
+			fmt.Printf("\nCzas wykonania: %v\n", res.Duration)
 
 		case "0":
 			fmt.Println("Zamykanie programu.")
 			return
 
 		default:
-			fmt.Println("Nieznana opcja.")
+			fmt.Println("Nieznana opcja. Spróbuj ponownie.")
 		}
 	}
 }

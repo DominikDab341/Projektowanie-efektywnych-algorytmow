@@ -17,6 +17,8 @@ func main() {
 		fmt.Println("2. Wygeneruj dane losowe")
 		fmt.Println("3. Wyświetl macierz")
 		fmt.Println("4. Uruchom algorytm Brute-Force")
+		fmt.Println("5. Uruchom algorytm Nearest Neighbor")
+		fmt.Println("6. Uruchom algorytm Repetitive Nearest Neighbor")
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
@@ -77,6 +79,49 @@ func main() {
 		case "0":
 			fmt.Println("Zamykanie programu.")
 			return
+
+		case "5":
+			if instance.Size == 0 {
+				fmt.Println("Błąd: Najpierw wczytaj lub wygeneruj dane wejściowe!")
+				continue
+			}
+			fmt.Println("Trwają obliczenia Nearest Neighbor...")
+			
+			// Wywołujemy NN zaczynając od miasta 0
+			res := instance.SolveNN(0)
+
+			fmt.Printf("\n--- WYNIKI NEAREST NEIGHBOR ---\n")
+			fmt.Printf("Koszt trasy: %d\n", res.MinCost)
+			
+			fmt.Print("Ścieżka: ")
+			for i, city := range res.Path {
+				fmt.Print(city)
+				if i < len(res.Path)-1 {
+					fmt.Print(" -> ")
+				}
+			}
+			fmt.Printf("\nCzas wykonania: %v\n", res.Duration)
+
+		case "6":
+			if instance.Size == 0 {
+				fmt.Println("Błąd: Najpierw wczytaj lub wygeneruj dane wejściowe!")
+				continue
+			}
+			fmt.Println("Trwają obliczenia Repetitive Nearest Neighbor...")
+			
+			res := instance.SolveRNN()
+
+			fmt.Printf("\n--- WYNIKI REPETITIVE NEAREST NEIGHBOR ---\n")
+			fmt.Printf("Najmniejszy koszt trasy: %d\n", res.MinCost)
+			
+			fmt.Print("Ścieżka: ")
+			for i, city := range res.Path {
+				fmt.Print(city)
+				if i < len(res.Path)-1 {
+					fmt.Print(" -> ")
+				}
+			}
+			fmt.Printf("\nCzas wykonania: %v\n", res.Duration)
 
 		default:
 			fmt.Println("Nieznana opcja. Spróbuj ponownie.")

@@ -19,6 +19,7 @@ func main() {
 		fmt.Println("4. Uruchom algorytm Brute-Force")
 		fmt.Println("5. Uruchom algorytm Nearest Neighbor")
 		fmt.Println("6. Uruchom algorytm Repetitive Nearest Neighbor")
+		fmt.Println("7. Uruchom algorytm losowy")
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
@@ -113,6 +114,35 @@ func main() {
 
 			fmt.Printf("\n--- WYNIKI REPETITIVE NEAREST NEIGHBOR ---\n")
 			fmt.Printf("Najmniejszy koszt trasy: %d\n", res.MinCost)
+			
+			fmt.Print("Ścieżka: ")
+			for i, city := range res.Path {
+				fmt.Print(city)
+				if i < len(res.Path)-1 {
+					fmt.Print(" -> ")
+				}
+			}
+			fmt.Printf("\nCzas wykonania: %v\n", res.Duration)
+
+
+		case "7":
+			if instance.Size == 0 {
+				fmt.Println("Błąd: Najpierw wczytaj lub wygeneruj dane wejściowe!")
+				continue
+			}
+			fmt.Print("Podaj liczbę permutacji do wylosowania: ")
+			reader.Scan()
+			perms, err := strconv.Atoi(reader.Text())
+			if err != nil || perms <= 0 {
+				fmt.Println("Błąd: podano nieprawidłową liczbę permutacji!")
+				continue
+			}
+
+			fmt.Printf("Trwają obliczenia dla %d losowych permutacji...\n", perms)
+			res := instance.SolveRandom(perms)
+
+			fmt.Printf("\n--- WYNIKI ALGORYTMU LOSOWEGO ---\n")
+			fmt.Printf("Najmniejszy znaleziony koszt: %d\n", res.MinCost)
 			
 			fmt.Print("Ścieżka: ")
 			for i, city := range res.Path {

@@ -20,6 +20,7 @@ func main() {
 		fmt.Println("5. Uruchom algorytm Nearest Neighbor")
 		fmt.Println("6. Uruchom algorytm Repetitive Nearest Neighbor")
 		fmt.Println("7. Uruchom algorytm losowy")
+		fmt.Println("8. Uruchom testy automatyczne")
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
@@ -152,6 +153,9 @@ func main() {
 				}
 			}
 			fmt.Printf("\nCzas wykonania: %v\n", res.Duration)
+
+		case "8":
+			RunAutomatedTests()
 
 		default:
 			fmt.Println("Nieznana opcja. Spróbuj ponownie.")

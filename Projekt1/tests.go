@@ -21,7 +21,7 @@ func RunAutomatedTests() {
 	// --- CZĘŚĆ 1: Pomiary czasu dla Brute-Force ---
 	fmt.Println("\n1. Testy czasu wykonania Brute-Force [szukanie N ~ 2 min]")
 	// Zaczynamy od mniejszych wartości, abyś mógł zaobserwować wzrost czasu
-	testSizesBF := []int{8, 9, 10, 11, 12, 13} 
+	testSizesBF := []int{8, 9, 10, 11, 12, 13, 14} 
 	for _, n := range testSizesBF {
 		inst := GenerateRandom(n)
 		res := inst.SolveBruteForce()

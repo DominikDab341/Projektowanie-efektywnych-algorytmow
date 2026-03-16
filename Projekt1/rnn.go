@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// SolveRNN implementuje algorytm Wielokrotnego Najbliższego Sąsiada (Repetitive Nearest Neighbor)
+// SolveRNN - Repetitive Nearest Neighbor z rozgałęzieniami (obsługa remisów)
 func (t TSPInstance) SolveRNN() Result {
 	start := time.Now()
 	n := t.Size
@@ -13,27 +13,45 @@ func (t TSPInstance) SolveRNN() Result {
 	var bestPath []int
 	minCost := math.MaxInt32
 
-	// Uruchamiamy NN dla każdego możliwego miasta startowego (od 0 do N-1)
 	for startCity := 0; startCity < n; startCity++ {
-		
-		// Wywołujemy algorytm NN dla aktualnego miasta startowego
-		currentResult := t.SolveNN(startCity)
+		visited := make([]bool, n)
+		visited[startCity] = true
 
-		// Jeśli znaleziona trasa jest lepsza (krótsza) niż dotychczasowa, zapamiętujemy ją
-		if currentResult.MinCost < minCost {
-			minCost = currentResult.MinCost
-			
-			// Tworzymy nową tablicę i kopiujemy do niej ścieżkę,
-			// aby uniknąć nadpisania jej w kolejnych iteracjach pętli
-			bestPath = make([]int, len(currentResult.Path))
-			copy(bestPath, currentResult.Path)
+		var dfs func(city int, path []int, cost, step int)
+		dfs = func(city int, path []int, cost, step int) {
+			if step == n {
+				total := cost + t.Matrix[city][startCity]
+				if total < minCost {
+					minCost = total
+					bestPath = append([]int{}, append(path, startCity)...)
+				}
+				return
+			}
+
+			// Znajdź minimalny koszt krawędzi
+			minEdge := math.MaxInt32
+			for j := 0; j < n; j++ {
+				if !visited[j] && t.Matrix[city][j] < minEdge {
+					minEdge = t.Matrix[city][j]
+				}
+			}
+
+			// Rozgałęzienie: idź do każdego miasta z tym minimalnym kosztem
+			for j := 0; j < n; j++ {
+				if !visited[j] && t.Matrix[city][j] == minEdge {
+					visited[j] = true
+					dfs(j, append(path, j), cost+minEdge, step+1)
+					visited[j] = false
+				}
+			}
 		}
+
+		dfs(startCity, []int{startCity}, 0, 1)
 	}
 
 	return Result{
 		Path:     bestPath,
 		MinCost:  minCost,
-		// Czas mierzymy od początku funkcji, obejmując wszystkie N wywołań NN
 		Duration: time.Since(start),
 	}
 }

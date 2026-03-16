@@ -1,2 +1,4 @@
 tsp*
 *.exe
+.venv
+*.pdf

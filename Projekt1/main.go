@@ -12,7 +12,7 @@ func main() {
 	reader := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Println("\n--- MENU PROJEKTU PEA ---")
+		fmt.Println("\n--- MENU ---")
 		fmt.Println("1. Wczytaj dane z pliku")
 		fmt.Println("2. Wygeneruj dane losowe")
 		fmt.Println("3. Wyświetl macierz")

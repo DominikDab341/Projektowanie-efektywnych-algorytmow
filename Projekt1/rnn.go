@@ -5,53 +5,62 @@ import (
 	"time"
 )
 
-// SolveRNN - Repetitive Nearest Neighbor z rozgałęzieniami (obsługa remisów)
 func (t TSPInstance) SolveRNN() Result {
 	start := time.Now()
 	n := t.Size
 
 	var bestPath []int
-	minCost := math.MaxInt32
+	minTotalCost := math.MaxInt32
 
 	for startCity := 0; startCity < n; startCity++ {
+
 		visited := make([]bool, n)
 		visited[startCity] = true
 
-		var dfs func(city int, path []int, cost, step int)
-		dfs = func(city int, path []int, cost, step int) {
-			if step == n {
-				total := cost + t.Matrix[city][startCity]
-				if total < minCost {
-					minCost = total
+		// Ta funkcja zastępuje "for step" z NN.
+		// Zamiast jednej pętli, wywołuje samą siebie (rekurencja),
+		// dzięki czemu może się cofnąć i spróbować innej drogi (backtracking).
+		var step func(currentCity int, path []int, totalCost int)
+		step = func(currentCity int, path []int, totalCost int) {
+
+			// Wszystkie miasta odwiedzone -> powrót do bazy (tak jak po pętli w NN)
+			if len(path) == n {
+				total := totalCost + t.Matrix[currentCity][startCity]
+				if total < minTotalCost {
+					minTotalCost = total
 					bestPath = append([]int{}, append(path, startCity)...)
 				}
 				return
 			}
 
-			// Znajdź minimalny koszt krawędzi
-			minEdge := math.MaxInt32
+			// === IDENTYCZNIE JAK W NN: szukamy minEdgeCost ===
+			minEdgeCost := math.MaxInt32
 			for j := 0; j < n; j++ {
-				if !visited[j] && t.Matrix[city][j] < minEdge {
-					minEdge = t.Matrix[city][j]
+				if !visited[j] {
+					cost := t.Matrix[currentCity][j]
+					if cost < minEdgeCost {
+						minEdgeCost = cost
+					}
 				}
 			}
 
-			// Rozgałęzienie: idź do każdego miasta z tym minimalnym kosztem
-			for j := 0; j < n; j++ {
-				if !visited[j] && t.Matrix[city][j] == minEdge {
-					visited[j] = true
-					dfs(j, append(path, j), cost+minEdge, step+1)
-					visited[j] = false
+			// === PRAWIE JAK W NN: idziemy do nextCity ===
+			// Różnica: w NN bierzemy JEDNO miasto, tu bierzemy KAŻDE z kosztem == minEdgeCost
+			for nextCity := 0; nextCity < n; nextCity++ {
+				if !visited[nextCity] && t.Matrix[currentCity][nextCity] == minEdgeCost {
+					visited[nextCity] = true
+					step(nextCity, append(path, nextCity), totalCost+minEdgeCost) // zamiast "for step++"
+					visited[nextCity] = false // BACKTRACKING - cofamy decyzję
 				}
 			}
 		}
 
-		dfs(startCity, []int{startCity}, 0, 1)
+		step(startCity, []int{startCity}, 0)
 	}
 
 	return Result{
 		Path:     bestPath,
-		MinCost:  minCost,
+		MinCost:  minTotalCost,
 		Duration: time.Since(start),
 	}
 }

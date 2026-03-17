@@ -10,8 +10,8 @@ def draw_charts():
     N_bf = [9, 10, 11, 12, 13, 14]
 
     # Czasy przeliczone na sekundy
-    # 618.4 µs, 7.0205 ms, 56.3894 ms, 607.946 ms, 7.51 s, 1m 43.6 s (103.628 s)
-    time_bf = [618.4e-6, 7.0205e-3, 56.3894e-3, 607.946e-3, 7.512642, 103.6279638]
+    # 502.8 µs, 4.5993 ms, 57.8369 ms, 614.8999 ms, 8.2272952 s, 1m54.3125687 s (114.3125687 s)
+    time_bf = [502.8e-6, 4.5993e-3, 57.8369e-3, 614.8999e-3, 8.2272952, 114.3125687]
 
     plt.figure(figsize=(8, 5))
     plt.plot(N_bf, time_bf, marker='o', linestyle='-', color='#1f77b4', linewidth=2, markersize=8)
@@ -36,9 +36,9 @@ def draw_charts():
     N_heur = [10, 11, 12, 13, 14]
 
     # Dane z Twojej drugiej tabeli
-    err_nn = [45.68, 52.86, 64.83, 60.34, 68.35]
-    err_rnn = [14.49, 17.55, 22.03, 22.54, 24.83]
-    err_rand = [89.36, 111.03, 127.12, 154.50, 175.40]
+    err_nn = [52.92, 57.31, 64.97, 71.81, 67.78]
+    err_rnn = [12.22, 18.62, 22.06, 24.66, 23.71]
+    err_rand = [82.62, 101.25, 132.81, 150.05, 169.57]
 
     plt.figure(figsize=(8, 5))
 

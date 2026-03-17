@@ -20,24 +20,21 @@ func (t TSPInstance) SolveRNN() Result {
 		var step func(currentCity int, path []int, totalCost int)
 		step = func(currentCity int, path []int, totalCost int) {
 
-			// KROK 1: Koniec wycieczki - zamykamy pętlę i sprawdzamy wynik
+			// zamykamy pętlę i sprawdzamy wynik
 			if len(path) == n {
 				total := totalCost + t.Matrix[currentCity][startCity]
 				
 				if total < minTotalCost {
 					minTotalCost = total
 					
-					// 1. Tworzymy pustą listę o rozmiarze trasy + 1 miejsce na miasto powrotne
 					bestPath = make([]int, len(path)+1)
-					// 2. Kopiujemy dotychczasowe miasta do nowej listy
 					copy(bestPath, path)
-					// 3. Wrzucamy miasto powrotne na sam koniec (na ostatni, pusty indeks)
 					bestPath[len(path)] = startCity
 				}
 				return
 			}
 
-			// KROK 2: Rozglądamy się po mapie - szukamy najtańszego kosztu przejścia
+			// szukamy najtańszego kosztu przejścia
 			minEdgeCost := math.MaxInt32
 			for j := 0; j < n; j++ {
 				if !visited[j] && t.Matrix[currentCity][j] < minEdgeCost {
@@ -45,17 +42,16 @@ func (t TSPInstance) SolveRNN() Result {
 				}
 			}
 
-			// KROK 3: Sprawdzamy wszystkie odnogi z najtańszym kosztem
+			// Sprawdzamy wszystkie odnogi z najtańszym kosztem
 			for nextCity := 0; nextCity < n; nextCity++ {
 				if !visited[nextCity] && t.Matrix[currentCity][nextCity] == minEdgeCost {
-					visited[nextCity] = true // Zaznaczamy
-					step(nextCity, append(path, nextCity), totalCost+minEdgeCost) // Idziemy głębiej
-					visited[nextCity] = false // BACKTRACKING: Odznaczamy (cofamy decyzję)
+					visited[nextCity] = true
+					step(nextCity, append(path, nextCity), totalCost+minEdgeCost)
+					visited[nextCity] = false
 				}
 			}
 		}
 
-		// Startujemy z pierwszego wybranego miasta
 		step(startCity, []int{startCity}, 0)
 	}
 

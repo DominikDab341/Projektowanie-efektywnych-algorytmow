@@ -5,8 +5,7 @@ import (
 	"time"
 )
 
-// SolveNN implementuje prosty algorytm Nearest Neighbor (bez rozgałęzień).
-// Zawsze wybiera pierwsze napotkane miasto o najmniejszym koszcie.
+
 func (t TSPInstance) SolveNN(startCity int) Result {
 	start := time.Now()
 	n := t.Size
@@ -17,11 +16,12 @@ func (t TSPInstance) SolveNN(startCity int) Result {
 	path := []int{startCity}
 	totalCost := 0
 	currentCity := startCity
-
+	// Przejście po wszystkich miastach
 	for step := 1; step < n; step++ {
 		minEdgeCost := math.MaxInt32
 		nextCity := -1
 
+		// Wyszukiwanie najtańszego sąsiada
 		for j := 0; j < n; j++ {
 			if !visited[j] {
 				cost := t.Matrix[currentCity][j]
@@ -32,6 +32,7 @@ func (t TSPInstance) SolveNN(startCity int) Result {
 			}
 		}
 
+		// Zaznaczamy miasto jako odwiedzone i dodajemy do ścieżki
 		visited[nextCity] = true
 		path = append(path, nextCity)
 		totalCost += minEdgeCost

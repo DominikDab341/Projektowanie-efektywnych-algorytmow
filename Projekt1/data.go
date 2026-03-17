@@ -9,20 +9,20 @@ import (
 	"time"
 )
 
-// TSPInstance przechowuje rozmiar i dynamicznie alokowaną macierz
+// Przechowuje rozmiar i dynamicznie alokowaną macierz
 type TSPInstance struct {
 	Size   int
 	Matrix [][]int
 }
 
-// Result przechowuje wyniki działania algorytmów wymagane w specyfikacji
+// Przechowuje wyniki działania algorytmów
 type Result struct {
 	Path     []int
 	MinCost  int
 	Duration time.Duration
 }
 
-// ReadFromFile wczytuje dane z pliku tekstowego
+// wczytuje dane z pliku tekstowego
 func ReadFromFile(filename string) (TSPInstance, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -58,7 +58,7 @@ func ReadFromFile(filename string) (TSPInstance, error) {
 	return TSPInstance{Size: size, Matrix: matrix}, nil
 }
 
-// GenerateRandom generuje losową instancję ATSP o zadanym rozmiarze
+// Generuje losową instancję ATSP o zadanym rozmiarze
 func GenerateRandom(size int) TSPInstance {
 	rand.Seed(time.Now().UnixNano())
 	matrix := make([][]int, size)
@@ -67,7 +67,7 @@ func GenerateRandom(size int) TSPInstance {
 		matrix[i] = make([]int, size)
 		for j := 0; j < size; j++ {
 			if i == j {
-				matrix[i][j] = -1 // Przekątna ma wartość -1
+				matrix[i][j] = -1 
 			} else {
 				matrix[i][j] = rand.Intn(100) + 1 // Koszty z zakresu 1-100
 			}
@@ -77,7 +77,7 @@ func GenerateRandom(size int) TSPInstance {
 	return TSPInstance{Size: size, Matrix: matrix}
 }
 
-// Display wypisuje zawartość macierzy w czytelny sposób
+// Wypisuje zawartość macierzy w czytelny sposób
 func (t TSPInstance) Display() {
 	if t.Size == 0 {
 		fmt.Println("Błąd: Macierz jest pusta. Najpierw wczytaj lub wygeneruj dane.")

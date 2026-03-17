@@ -62,8 +62,6 @@ func main() {
 				continue
 			}
 			fmt.Println("Trwają obliczenia Brute-Force...")
-			
-			// Wywołanie funkcji z pliku bruteforce.go
 			res := instance.SolveBruteForce()
 
 			fmt.Printf("\n--- WYNIKI BRUTE-FORCE ---\n")
@@ -89,7 +87,6 @@ func main() {
 			}
 			fmt.Println("Trwają obliczenia Nearest Neighbor...")
 			
-			// Wywołujemy NN zaczynając od miasta 0
 			res := instance.SolveNN(0)
 
 			fmt.Printf("\n--- WYNIKI NEAREST NEIGHBOR ---\n")

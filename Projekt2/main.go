@@ -18,6 +18,7 @@ func main() {
 		fmt.Println("3. Wyświetl macierz")
 		fmt.Println("4. Uruchom algorytm Branch & Bound dla obecnych danych")
 		fmt.Println("5. Uruchom automatyczne badania i zbiór statystyk")
+		fmt.Println("6. Weryfikacja poprawności B&B (porównanie z Brute-Force)")
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
@@ -103,6 +104,44 @@ func main() {
 
 		case "5":
 			RunAutomatedTests()
+
+		case "6":
+			if instance.Size == 0 {
+				fmt.Println("Błąd: Najpierw wczytaj lub wygeneruj dane wejściowe!")
+				continue
+			}
+			if instance.Size > 12 {
+				fmt.Println("Uwaga: Brute-force dla N>12 może trwać bardzo długo!")
+			}
+
+			fmt.Println("\n--- WERYFIKACJA POPRAWNOŚCI B&B vs BRUTE-FORCE ---")
+
+			resBF := instance.SolveBruteForce()
+			fmt.Printf("Brute-Force:    koszt = %d\n", resBF.MinCost)
+
+			resBestINF := instance.SolveBranchAndBound("BEST", "INF", 0)
+			fmt.Printf("Best(INF):      koszt = %d", resBestINF.MinCost)
+			if resBestINF.MinCost == resBF.MinCost {
+				fmt.Println("  ✓ OK")
+			} else {
+				fmt.Println("  ✗ BŁĄD!")
+			}
+
+			resBestNN := instance.SolveBranchAndBound("BEST", "NN", 0)
+			fmt.Printf("Best(NN):       koszt = %d", resBestNN.MinCost)
+			if resBestNN.MinCost == resBF.MinCost {
+				fmt.Println("  ✓ OK")
+			} else {
+				fmt.Println("  ✗ BŁĄD!")
+			}
+
+			resBFS := instance.SolveBranchAndBound("BREADTH", "INF", 0)
+			fmt.Printf("Breadth(INF):   koszt = %d", resBFS.MinCost)
+			if resBFS.MinCost == resBF.MinCost {
+				fmt.Println("  ✓ OK")
+			} else {
+				fmt.Println("  ✗ BŁĄD!")
+			}
 
 		case "0":
 			fmt.Println("Zamykanie programu.")

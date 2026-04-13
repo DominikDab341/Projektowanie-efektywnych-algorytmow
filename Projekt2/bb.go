@@ -5,12 +5,15 @@ import (
 	"time"
 )
 
+const INF = int(^uint(0) >> 1)
+
 // Węzeł w drzewie stanu dla Branch & Bound
 type Node struct {
-	Level int
-	Path  []int
-	Cost  int
-	Bound int
+	Level   int
+	Path    []int
+	Cost    int
+	Bound   int
+	Visited uint64 // Bitmaska odwiedzonych miast (do 64 miast)
 }
 
 // Kolejka priorytetowa dla algorytmu Best-First-Search
@@ -33,61 +36,109 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-// calculateLowerBound wylicza dolne ograniczenie dla węzła (The Lower Bound)
-func calculateLowerBound(matrix [][]int, path []int, size int) int {
-	cost := 0
-	visited := make([]bool, size)
+// isVisited sprawdza czy miasto jest odwiedzone w bitmaskach (O(1))
+func isVisited(visited uint64, city int) bool {
+	return visited&(1<<uint(city)) != 0
+}
 
-	// Sumujemy koszty z aktualnej, już wybranej ścieżki
-	for i := 0; i < len(path)-1; i++ {
-		cost += matrix[path[i]][path[i+1]]
-		visited[path[i]] = true
-	}
-	last := path[len(path)-1]
-	visited[last] = true
+// setVisited ustawia miasto jako odwiedzone w bitmaskach (O(1))
+func setVisited(visited uint64, city int) uint64 {
+	return visited | (1 << uint(city))
+}
 
-	// Jeżeli graf jest już w pełni odwiedzony, wystarczy zwrócić koszt dotychczasowy z powrotem by zamknąć graf
-	if len(path) == size {
-		if matrix[last][path[0]] == -1 {
-			return int(^uint(0) >> 1)
-		}
-		return cost + matrix[last][path[0]]
-	}
-
-	// Dodajemy najkrótsze możliwe ścieżki wychodzące z ostatnich i nieodwiedzonych wierzchołków.
-	// Dla Ostatniego węzła z wybranej ścieżki:
-	minOutLast := int(^uint(0) >> 1)
-	for j := 0; j < size; j++ {
-		if !visited[j] && matrix[last][j] != -1 && matrix[last][j] < minOutLast {
-			minOutLast = matrix[last][j]
-		}
-	}
-	if minOutLast == int(^uint(0)>>1) {
-		return int(^uint(0) >> 1) // Ślepy zaułek
-	}
-	cost += minOutLast
-
-	// Dla pozostałych wierzchołków NIEodwiedzonych z grafu:
+// calculateLowerBound wylicza dolne ograniczenie metodą redukcji macierzy kosztów (Little et al. 1963).
+// Buduje podmacierz z pozostałych miast, redukuje wiersze i kolumny — suma redukcji = lower bound.
+func calculateLowerBound(matrix [][]int, visited uint64, lastCity int, pathCost int, size int) int {
+	// Zbieramy nieodwiedzone miasta
+	unvisited := make([]int, 0, size)
 	for i := 0; i < size; i++ {
-		if !visited[i] {
-			minOut := int(^uint(0) >> 1)
-			for j := 0; j < size; j++ {
-				// Możemy z nieodwiedzonego wyjść do następnego nieodwiedzonego,
-				// LUB zamknąć cykl, zwracając się do wierzchołka 0.
-				if i != j && matrix[i][j] != -1 && (!visited[j] || j == path[0]) {
-					if matrix[i][j] < minOut {
-						minOut = matrix[i][j]
-					}
+		if !isVisited(visited, i) {
+			unvisited = append(unvisited, i)
+		}
+	}
+
+	k := len(unvisited)
+
+	// Jeśli wszystkie miasta odwiedzone — zamykamy cykl
+	if k == 0 {
+		if matrix[lastCity][0] == -1 {
+			return INF
+		}
+		return pathCost + matrix[lastCity][0]
+	}
+
+	// Budujemy podmacierz do redukcji:
+	// Wiersze (skąd): lastCity + każde nieodwiedzone miasto
+	// Kolumny (dokąd): każde nieodwiedzone miasto + miasto 0 (powrót)
+	n := k + 1
+
+	rowCities := make([]int, n)
+	rowCities[0] = lastCity
+	for i, c := range unvisited {
+		rowCities[i+1] = c
+	}
+
+	colCities := make([]int, n)
+	for i, c := range unvisited {
+		colCities[i] = c
+	}
+	colCities[k] = 0 // ostatnia kolumna = powrót do startu
+
+	// Wypełniamy podmacierz kosztami
+	sub := make([][]int, n)
+	for i := 0; i < n; i++ {
+		sub[i] = make([]int, n)
+		for j := 0; j < n; j++ {
+			from := rowCities[i]
+			to := colCities[j]
+			if from == to || matrix[from][to] == -1 {
+				sub[i][j] = INF
+			} else {
+				sub[i][j] = matrix[from][to]
+			}
+		}
+	}
+
+	reductionSum := 0
+
+	// Redukcja WIERSZY — od każdego wiersza odejmujemy jego minimum
+	for i := 0; i < n; i++ {
+		minVal := INF
+		for j := 0; j < n; j++ {
+			if sub[i][j] < minVal {
+				minVal = sub[i][j]
+			}
+		}
+		if minVal == INF {
+			return INF // Ślepy zaułek — wiersz bez żadnej krawędzi
+		}
+		if minVal > 0 {
+			reductionSum += minVal
+			for j := 0; j < n; j++ {
+				if sub[i][j] != INF {
+					sub[i][j] -= minVal
 				}
 			}
-			if minOut == int(^uint(0)>>1) {
-				return int(^uint(0) >> 1) // Ślepy zaułek grafu
-			}
-			cost += minOut
 		}
 	}
 
-	return cost
+	// Redukcja KOLUMN — od każdej kolumny odejmujemy jej minimum
+	for j := 0; j < n; j++ {
+		minVal := INF
+		for i := 0; i < n; i++ {
+			if sub[i][j] < minVal {
+				minVal = sub[i][j]
+			}
+		}
+		if minVal == INF {
+			return INF // Ślepy zaułek — kolumna bez żadnej krawędzi
+		}
+		if minVal > 0 {
+			reductionSum += minVal
+		}
+	}
+
+	return pathCost + reductionSum
 }
 
 // Funkcja pomocnicza: wyznaczenie początkowego rozwiązania heurystycznego (Nearest Neighbor)
@@ -101,7 +152,7 @@ func (t TSPInstance) getInitialBoundNN() (int, []int) {
 	current := 0
 
 	for step := 1; step < size; step++ {
-		minEdge := int(^uint(0) >> 1)
+		minEdge := INF
 		next := -1
 		for j := 0; j < size; j++ {
 			if !visited[j] && t.Matrix[current][j] != -1 && t.Matrix[current][j] < minEdge {
@@ -110,7 +161,7 @@ func (t TSPInstance) getInitialBoundNN() (int, []int) {
 			}
 		}
 		if next == -1 {
-			return int(^uint(0) >> 1), nil // Gdyby NN wylosował ślepok, oddaje nieskończoność
+			return INF, nil // Gdyby NN wylosował ślepok, oddaje nieskończoność
 		}
 		cost += minEdge
 		current = next
@@ -119,7 +170,7 @@ func (t TSPInstance) getInitialBoundNN() (int, []int) {
 	}
 
 	if t.Matrix[current][0] == -1 {
-		return int(^uint(0) >> 1), nil
+		return INF, nil
 	}
 	cost += t.Matrix[current][0]
 	path = append(path, 0)
@@ -134,27 +185,18 @@ func clonePath(p []int) []int {
 	return cp
 }
 
-func contains(slice []int, item int) bool {
-	for _, a := range slice {
-		if a == item {
-			return true
-		}
-	}
-	return false
-}
-
 // SolveBranchAndBound rozwiązuje instancję ATSP bazując na metodzie B&B ("BREADTH", "BEST").
 // 'mode' definiuje użyty limiter początkowy: "NN" (Nearest Neighbor) lub "INF" (Infinity).
 func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu time.Duration) Result {
-	start := time.Now()
 	resultChan := make(chan Result, 1) // Buforowana by gorutyna się wyłączyła
 	done := make(chan struct{})
 
 	go func() {
 		defer close(resultChan)
+		start := time.Now() // Pomiar czasu wewnątrz goroutyny — bez schedulingu
 
 		// Ustalenie Globalnego Najmniejszego Kosztu na START (Upper Bound Limit)
-		globalMinCost := int(^uint(0) >> 1)
+		globalMinCost := INF
 		var bestPath []int
 
 		if mode == "NN" {
@@ -165,15 +207,16 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 			}
 		}
 
-		// Obliczenie Bound korzenia
-		rootPath := []int{0}
-		rootBound := calculateLowerBound(t.Matrix, rootPath, t.Size)
+		// Obliczenie Bound korzenia (miasto startowe = 0)
+		rootVisited := setVisited(0, 0)
+		rootBound := calculateLowerBound(t.Matrix, rootVisited, 0, 0, t.Size)
 
 		root := &Node{
-			Level: 1,
-			Path:  rootPath,
-			Cost:  0,
-			Bound: rootBound,
+			Level:   1,
+			Path:    []int{0},
+			Cost:    0,
+			Bound:   rootBound,
+			Visited: rootVisited,
 		}
 
 		// Zabezpieczenie przed timeoutami podczas kręcenia głębokiej pętli
@@ -214,7 +257,7 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 						finalCost := current.Cost + t.Matrix[lastCity][0]
 						if finalCost < globalMinCost {
 							globalMinCost = finalCost
-							var finalPath = clonePath(current.Path)
+							finalPath := clonePath(current.Path)
 							finalPath = append(finalPath, 0)
 							bestPath = finalPath
 						}
@@ -223,17 +266,18 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 				}
 
 				for i := 0; i < t.Size; i++ {
-					if t.Matrix[lastCity][i] != -1 && !contains(current.Path, i) {
-						newPath := append(clonePath(current.Path), i)
+					if t.Matrix[lastCity][i] != -1 && !isVisited(current.Visited, i) {
 						newCost := current.Cost + t.Matrix[lastCity][i]
-						newBound := calculateLowerBound(t.Matrix, newPath, t.Size)
+						newVisited := setVisited(current.Visited, i)
+						newBound := calculateLowerBound(t.Matrix, newVisited, i, newCost, t.Size)
 
 						if newBound < globalMinCost {
 							child := &Node{
-								Level: current.Level + 1,
-								Path:  newPath,
-								Cost:  newCost,
-								Bound: newBound,
+								Level:   current.Level + 1,
+								Path:    append(clonePath(current.Path), i),
+								Cost:    newCost,
+								Bound:   newBound,
+								Visited: newVisited,
 							}
 							heap.Push(&pq, child)
 						}
@@ -270,7 +314,7 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 						finalCost := current.Cost + t.Matrix[lastCity][0]
 						if finalCost < globalMinCost {
 							globalMinCost = finalCost
-							var finalPath = clonePath(current.Path)
+							finalPath := clonePath(current.Path)
 							finalPath = append(finalPath, 0)
 							bestPath = finalPath
 						}
@@ -279,19 +323,20 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 				}
 
 				for i := 0; i < t.Size; i++ {
-					if t.Matrix[lastCity][i] != -1 && !contains(current.Path, i) {
-						newPath := append(clonePath(current.Path), i)
+					if t.Matrix[lastCity][i] != -1 && !isVisited(current.Visited, i) {
 						newCost := current.Cost + t.Matrix[lastCity][i]
-						newBound := calculateLowerBound(t.Matrix, newPath, t.Size)
+						newVisited := setVisited(current.Visited, i)
+						newBound := calculateLowerBound(t.Matrix, newVisited, i, newCost, t.Size)
 
 						// Ograniczanie też dodajemy by oszczędzić trochę w BFS, ale samo wrzucanie
 						// będzie bez priorytetów (od nogi, ślepe przeglądanie poziom za poziomem)
 						if newBound < globalMinCost {
 							child := &Node{
-								Level: current.Level + 1,
-								Path:  newPath,
-								Cost:  newCost,
-								Bound: newBound,
+								Level:   current.Level + 1,
+								Path:    append(clonePath(current.Path), i),
+								Cost:    newCost,
+								Bound:   newBound,
+								Visited: newVisited,
 							}
 							queue = append(queue, child)
 						}

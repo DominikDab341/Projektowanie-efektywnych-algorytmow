@@ -17,9 +17,10 @@ type TSPInstance struct {
 
 // Przechowuje wyniki działania algorytmów
 type Result struct {
-	Path     []int
-	MinCost  int
-	Duration time.Duration
+	Path          []int
+	MinCost       int
+	Duration      time.Duration
+	NodesExplored int
 }
 
 // wczytuje dane z pliku tekstowego
@@ -60,16 +61,15 @@ func ReadFromFile(filename string) (TSPInstance, error) {
 
 // Generuje losową instancję ATSP o zadanym rozmiarze
 func GenerateRandom(size int) TSPInstance {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	matrix := make([][]int, size)
-	
+
 	for i := 0; i < size; i++ {
 		matrix[i] = make([]int, size)
 		for j := 0; j < size; j++ {
 			if i == j {
-				matrix[i][j] = -1 
+				matrix[i][j] = -1
 			} else {
-				matrix[i][j] = r.Intn(90) + 10 // Koszty z zakresu 10-99
+				matrix[i][j] = rand.Intn(90) + 10 // Koszty z zakresu 10-99
 			}
 		}
 	}

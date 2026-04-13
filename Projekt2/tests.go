@@ -2,76 +2,126 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 )
 
 // RunAutomatedTests przeprowadza statystyczną analizę działania Branch&Bound ATSP wg wymogów zadania 2.
-// Funkcja zakłada testy dla zróżnicowanych 15 rozmiarów (N), ze 100 próbkami z zachowaniem odcięcia 5 min.
+// Generuje instancje RAZ, a potem testuje każdy wariant na TEJ SAMEJ puli — uczciwe porównanie.
 func RunAutomatedTests() {
 	LimitCzasu := 5 * time.Minute
-	LimitInstancji := 100 // w zadaniu: 100 losowych instancji problemu dla każdej wielkości
+	LimitInstancji := 100
 
-	fmt.Println("\n--- ROZPOCZYNANIE BADAŃ B&B (Limit: 5 minut na przerwę pojedynczej) ---")
-	
-	// Zalecane minimum 10 rozmiarów. B&B wzrośnie drastycznie pomiędzy N=10 a N=20.
-	testSizes := []int{4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
-	
-	fmt.Println("N\tBFS (INF) T.\tPrzerw BFS%\tBest (INF) T.\tPrzerw Best%\tBest (NN) T.\tPrzerw Best(NN)%")
+	fmt.Println("\n========================================================================")
+	fmt.Println("       BADANIA BRANCH & BOUND — ATSP (Limit: 5 min / instancję)")
+	fmt.Println("========================================================================")
 
-	for _, n := range testSizes {
-		var (
-			sumTimeBFS, sumTimeBestINF, sumTimeBestNN time.Duration
-			timeoutBFS, timeoutBestINF, timeoutBestNN int
-		)
-		
+	// =====================================================================
+	// TEST 1: BREADTH-FIRST-SEARCH (INF) — N od 8 do 12
+	// =====================================================================
+	// sizesBFS := []int{8, 9, 10, 11, 12}
+
+	// fmt.Println("\n--- [1/3] BREADTH-FIRST-SEARCH (Ograniczenie: INF) ---")
+	// fmt.Println("N\tŚredni czas\t\tTimeouty")
+
+	// for _, n := range sizesBFS {
+	// 	// Generujemy instancje RAZ
+	// 	instances := make([]TSPInstance, LimitInstancji)
+	// 	for i := 0; i < LimitInstancji; i++ {
+	// 		instances[i] = GenerateRandom(n)
+	// 	}
+
+	// 	var sumTime time.Duration
+	// 	timeouts := 0
+
+	// 	for i := 0; i < LimitInstancji; i++ {
+	// 		res := instances[i].SolveBranchAndBound("BREADTH", "INF", LimitCzasu)
+	// 		if res.MinCost == -1 {
+	// 			timeouts++
+	// 		} else {
+	// 			sumTime += res.Duration
+	// 		}
+	// 	}
+
+	// 	sukcesy := LimitInstancji - timeouts
+	// 	var avg time.Duration
+	// 	if sukcesy > 0 {
+	// 		avg = time.Duration(float64(sumTime.Nanoseconds()) / float64(sukcesy))
+	// 	} else {
+	// 		avg = LimitCzasu
+	// 	}
+
+	// 	fmt.Printf("%d\t%v\t\t%d%%\n", n, avg, timeouts)
+
+	// 	if timeouts == LimitInstancji {
+	// 		fmt.Printf(">> BFS(INF): Blokada przy N=%d. Wszystkie instancje przekroczyły limit.\n", n)
+	// 		break
+	// 	}
+	// }
+
+	// =====================================================================
+	// TEST 2 & 3: BEST-FIRST-SEARCH (INF vs NN) — te same instancje!
+	// =====================================================================
+	sizesBest := []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ,22 ,23 ,24, 25, 26, 27, 28}
+
+	fmt.Println("\n--- [2/3 + 3/3] BEST-FIRST-SEARCH (INF vs NN — te same instancje) ---")
+	fmt.Println("N\tBest(INF) czas\t\tINF T/O\t\tBest(NN) czas\t\tNN T/O")
+
+	for _, n := range sizesBest {
+		// Generujemy instancje RAZ — obie metody dostaną DOKŁADNIE TE SAME dane
+		instances := make([]TSPInstance, LimitInstancji)
 		for i := 0; i < LimitInstancji; i++ {
-			// Czas wygenerowania instancji losowej N i alokacji nie wpływa na pomiar funkcji B&B
-			inst := GenerateRandom(n)
-			
-			// === TEST 1: Metoda BREADTH FIRST SEARCH (Ślepy start) ===
-			resBFS := inst.SolveBranchAndBound("BREADTH", "INF", LimitCzasu)
-			if resBFS.MinCost == -1 {
-				timeoutBFS++ 
+			instances[i] = GenerateRandom(n)
+		}
+
+		var sumTimeINF, sumTimeNN time.Duration
+		timeoutINF, timeoutNN := 0, 0
+
+		runtime.GC() // Wymuszenie GC przed serią pomiarów — żeby nie strzelał w trakcie
+
+		for i := 0; i < LimitInstancji; i++ {
+			// Best(INF) na tej samej instancji
+			resINF := instances[i].SolveBranchAndBound("BEST", "INF", LimitCzasu)
+			if resINF.MinCost == -1 {
+				timeoutINF++
 			} else {
-				sumTimeBFS += resBFS.Duration
-			}
-			
-			// === TEST 2: Metoda BEST FIRST SEARCH (Ślepy start) ===
-			resBestINF := inst.SolveBranchAndBound("BEST", "INF", LimitCzasu)
-			if resBestINF.MinCost == -1 {
-				timeoutBestINF++
-			} else {
-				sumTimeBestINF += resBestINF.Duration
+				sumTimeINF += resINF.Duration
 			}
 
-			// === TEST 3: Metoda BEST FIRST SEARCH (Heurystyka NN na start) ===
-			resBestNN := inst.SolveBranchAndBound("BEST", "NN", LimitCzasu)
-			if resBestNN.MinCost == -1 {
-				timeoutBestNN++
+			// Best(NN) na tej samej instancji
+			resNN := instances[i].SolveBranchAndBound("BEST", "NN", LimitCzasu)
+			if resNN.MinCost == -1 {
+				timeoutNN++
 			} else {
-				sumTimeBestNN += resBestNN.Duration
+				sumTimeNN += resNN.Duration
 			}
 		}
 
-		// Obliczenie uśrednionych statystyk prób
-		sukcesyBFS := LimitInstancji - timeoutBFS
-		sukcesyBestINF := LimitInstancji - timeoutBestINF
-		sukcesyBestNN := LimitInstancji - timeoutBestNN
-		
-		var avgBFS, avgBestINF, avgBestNN time.Duration
-		
-		if sukcesyBFS > 0 { avgBFS = time.Duration(float64(sumTimeBFS.Nanoseconds()) / float64(sukcesyBFS)) } else { avgBFS = LimitCzasu }
-		if sukcesyBestINF > 0 { avgBestINF = time.Duration(float64(sumTimeBestINF.Nanoseconds()) / float64(sukcesyBestINF)) } else { avgBestINF = LimitCzasu }
-		if sukcesyBestNN > 0 { avgBestNN = time.Duration(float64(sumTimeBestNN.Nanoseconds()) / float64(sukcesyBestNN)) } else { avgBestNN = LimitCzasu }
+		sukcesyINF := LimitInstancji - timeoutINF
+		sukcesyNN := LimitInstancji - timeoutNN
 
-		// Z uwagi, że testów w grupie jest równo 100, licznik `timeout` jest wprost równoznaczny procencie (%).
-		fmt.Printf("%d\t%v\t%d%%\t\t%v\t%d%%\t\t%v\t%d%%\n", 
-			n, avgBFS, timeoutBFS, avgBestINF, timeoutBestINF, avgBestNN, timeoutBestNN)
-		
-		// Oszacowanie maksymalnego osiągalnego średniego N - jeżeli dla WSZYSTKICH wariantów padnie, przerywamy.
-		if timeoutBFS == LimitInstancji && timeoutBestINF == LimitInstancji && timeoutBestNN == LimitInstancji {
-			fmt.Printf("Osiągnięto blokadę obliczeniową przy N=%d, limitu pamięci/czasu. Zakańczam.\n", n)
+		var avgINF, avgNN time.Duration
+		if sukcesyINF > 0 {
+			avgINF = time.Duration(float64(sumTimeINF.Nanoseconds()) / float64(sukcesyINF))
+		} else {
+			avgINF = LimitCzasu
+		}
+		if sukcesyNN > 0 {
+			avgNN = time.Duration(float64(sumTimeNN.Nanoseconds()) / float64(sukcesyNN))
+		} else {
+			avgNN = LimitCzasu
+		}
+
+		fmt.Printf("%d\t%v\t\t%d%%\t\t%v\t\t%d%%\n",
+			n, avgINF, timeoutINF, avgNN, timeoutNN)
+
+		if timeoutINF == LimitInstancji && timeoutNN == LimitInstancji {
+			fmt.Printf(">> Best: Blokada przy N=%d. Wszystkie instancje przekroczyły limit.\n", n)
 			break
 		}
 	}
+
+	fmt.Println("\n========================================================================")
+	fmt.Println("                        BADANIA ZAKOŃCZONE")
+	fmt.Println("========================================================================")
 }

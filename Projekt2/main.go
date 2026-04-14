@@ -86,7 +86,6 @@ func main() {
 
 			fmt.Printf("Trwają obliczenia algorytmem Branch & Bound (%s / Ograniczenie początkowe: %s)...\n", metoda, mode)
 			
-			// W ręcznym sprawdzaniu zakładamy, że chcemy poczekać na wynik. Limit 0
 			res := instance.SolveBranchAndBound(metoda, mode, 0)
 
 			fmt.Printf("\n--- WYNIKI BRANCH & BOUND (%s) ---\n", metoda)

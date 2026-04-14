@@ -7,7 +7,7 @@ import (
 
 const INF = int(^uint(0) >> 1)
 
-// Węzeł w drzewie stanu dla Branch & Bound
+// Węzeł w drzewie stanu 
 type Node struct {
 	Level   int
 	Path    []int
@@ -36,19 +36,19 @@ func (pq *PriorityQueue) Pop() any {
 	return item
 }
 
-// isVisited sprawdza czy miasto jest odwiedzone w bitmaskach (O(1))
+// isVisited sprawdza czy miasto jest odwiedzone w bitmaskach
 func isVisited(visited uint64, city int) bool {
 	return visited&(1<<uint(city)) != 0
 }
 
-// setVisited ustawia miasto jako odwiedzone w bitmaskach (O(1))
+// setVisited ustawia miasto jako odwiedzone w bitmaskach
 func setVisited(visited uint64, city int) uint64 {
 	return visited | (1 << uint(city))
 }
 
-// calculateLowerBound wylicza dolne ograniczenie metodą redukcji macierzy kosztów (Little et al. 1963).
-// Buduje podmacierz z pozostałych miast, redukuje wiersze i kolumny — suma redukcji = lower bound.
+// calculateLowerBound wylicza dolne ograniczenie metodą redukcji macierzy kosztów
 func calculateLowerBound(matrix [][]int, visited uint64, lastCity int, pathCost int, size int) int {
+	
 	// Zbieramy nieodwiedzone miasta
 	unvisited := make([]int, 0, size)
 	for i := 0; i < size; i++ {
@@ -79,10 +79,8 @@ func calculateLowerBound(matrix [][]int, visited uint64, lastCity int, pathCost 
 	}
 
 	colCities := make([]int, n)
-	for i, c := range unvisited {
-		colCities[i] = c
-	}
-	colCities[k] = 0 // ostatnia kolumna = powrót do startu
+	copy(colCities, unvisited)
+	colCities[k] = 0
 
 	// Wypełniamy podmacierz kosztami
 	sub := make([][]int, n)
@@ -110,7 +108,7 @@ func calculateLowerBound(matrix [][]int, visited uint64, lastCity int, pathCost 
 			}
 		}
 		if minVal == INF {
-			return INF // Ślepy zaułek — wiersz bez żadnej krawędzi
+			return INF
 		}
 		if minVal > 0 {
 			reductionSum += minVal
@@ -141,8 +139,7 @@ func calculateLowerBound(matrix [][]int, visited uint64, lastCity int, pathCost 
 	return pathCost + reductionSum
 }
 
-// Funkcja pomocnicza: wyznaczenie początkowego rozwiązania heurystycznego (Nearest Neighbor)
-// By służyło jako wstępnie narzucona bariera ucinania gałęzi (Pruning limit)
+// wyznaczenie początkowego rozwiązania heurystycznego (Nearest Neighbor)
 func (t TSPInstance) getInitialBoundNN() (int, []int) {
 	size := t.Size
 	visited := make([]bool, size)
@@ -161,7 +158,7 @@ func (t TSPInstance) getInitialBoundNN() (int, []int) {
 			}
 		}
 		if next == -1 {
-			return INF, nil // Gdyby NN wylosował ślepok, oddaje nieskończoność
+			return INF, nil
 		}
 		cost += minEdge
 		current = next
@@ -178,24 +175,23 @@ func (t TSPInstance) getInitialBoundNN() (int, []int) {
 	return cost, path
 }
 
-// Klonowanie plastra chroniące przed konfliktami w pamięci współbieżnej
+// Klonowanie plastra chroniące przed konfliktami w pamięci
 func clonePath(p []int) []int {
 	cp := make([]int, len(p))
 	copy(cp, p)
 	return cp
 }
 
-// SolveBranchAndBound rozwiązuje instancję ATSP bazując na metodzie B&B ("BREADTH", "BEST").
-// 'mode' definiuje użyty limiter początkowy: "NN" (Nearest Neighbor) lub "INF" (Infinity).
+
 func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu time.Duration) Result {
-	resultChan := make(chan Result, 1) // Buforowana by gorutyna się wyłączyła
+	resultChan := make(chan Result, 1)
 	done := make(chan struct{})
 
 	go func() {
 		defer close(resultChan)
-		start := time.Now() // Pomiar czasu wewnątrz goroutyny — bez schedulingu
+		start := time.Now() // Pomiar czasu wewnątrz goroutyny
 
-		// Ustalenie Globalnego Najmniejszego Kosztu na START (Upper Bound Limit)
+		// Ustalenie Globalnego Najmniejszego Kosztu na START
 		globalMinCost := INF
 		var bestPath []int
 
@@ -207,7 +203,7 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 			}
 		}
 
-		// Obliczenie Bound korzenia (miasto startowe = 0)
+		// Obliczenie Bound korzenia
 		rootVisited := setVisited(0, 0)
 		rootBound := calculateLowerBound(t.Matrix, rootVisited, 0, 0, t.Size)
 
@@ -219,7 +215,6 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 			Visited: rootVisited,
 		}
 
-		// Zabezpieczenie przed timeoutami podczas kręcenia głębokiej pętli
 		timeoutTicks := 0
 
 		if metoda == "BEST" {
@@ -228,8 +223,6 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 			heap.Push(&pq, root)
 
 			for pq.Len() > 0 {
-				// Bezpiecznik pozwalający po 10 tys węzłów rzucić sprawdzenie czy główny thread
-				// wysłał na zewnątrz sygnał TimeOut by zamknąć gorutynę obliczeniową.
 				timeoutTicks++
 				if timeoutTicks > 10000 {
 					select {
@@ -242,8 +235,7 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 
 				current := heap.Pop(&pq).(*Node)
 
-				// Pruning węzła (jeżeli teoretycznie możliwe najlepiej wyliczone
-				// z niego ścieżki i tak są wyższe niż nasz obecny absolutny rekord to Ucinamy Gałąź)
+				// Pruning węzła
 				if current.Bound >= globalMinCost {
 					continue
 				}
@@ -286,7 +278,7 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 			}
 
 		} else if metoda == "BREADTH" {
-			// Klasyczna Kolejka FIFO (Plaster)
+			// Klasyczna Kolejka FIFO
 			queue := []*Node{root}
 
 			for len(queue) > 0 {
@@ -328,8 +320,6 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 						newVisited := setVisited(current.Visited, i)
 						newBound := calculateLowerBound(t.Matrix, newVisited, i, newCost, t.Size)
 
-						// Ograniczanie też dodajemy by oszczędzić trochę w BFS, ale samo wrzucanie
-						// będzie bez priorytetów (od nogi, ślepe przeglądanie poziom za poziomem)
 						if newBound < globalMinCost {
 							child := &Node{
 								Level:   current.Level + 1,
@@ -357,12 +347,10 @@ func (t TSPInstance) SolveBranchAndBound(metoda string, mode string, limitCzasu 
 		case res := <-resultChan:
 			return res
 		case <-time.After(limitCzasu):
-			// Timeout algorytmu z powodu braku w pamięci/konsekwencji
-			close(done) // Sygnał do zabicia gorutyny by nie kradła RAMu i CPU.
+			close(done)
 			return Result{MinCost: -1, Duration: limitCzasu}
 		}
 	} else {
-		// Tryb Menu (bez timeoutu)
 		res := <-resultChan
 		return res
 	}

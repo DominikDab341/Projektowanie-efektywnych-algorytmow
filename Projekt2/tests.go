@@ -9,11 +9,11 @@ import (
 // RunAutomatedTests przeprowadza statystyczną analizę działania Branch&Bound ATSP wg wymogów zadania 2.
 // Generuje instancje RAZ, a potem testuje każdy wariant na TEJ SAMEJ puli — uczciwe porównanie.
 func RunAutomatedTests() {
-	LimitCzasu := 5 * time.Minute
+	LimitCzasu := 2 * time.Minute
 	LimitInstancji := 100
 
 	fmt.Println("\n========================================================================")
-	fmt.Println("       BADANIA BRANCH & BOUND — ATSP (Limit: 5 min / instancję)")
+	fmt.Println("       BADANIA BRANCH & BOUND — ATSP (Limit: 2 min / instancję)")
 	fmt.Println("========================================================================")
 
 	// =====================================================================
@@ -62,10 +62,10 @@ func RunAutomatedTests() {
 	// =====================================================================
 	// TEST 2 & 3: BEST-FIRST-SEARCH (INF vs NN) — te same instancje!
 	// =====================================================================
-	sizesBest := []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ,22 ,23 ,24, 25, 26, 27, 28}
+	sizesBest := []int{8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40}
 
 	fmt.Println("\n--- [2/3 + 3/3] BEST-FIRST-SEARCH (INF vs NN — te same instancje) ---")
-	fmt.Println("N\tBest(INF) czas\t\tINF T/O\t\tBest(NN) czas\t\tNN T/O")
+	fmt.Println("N\tINF śr.(udane)\t\tINF śr.(wszystkie)\tINF T/O\t\tNN śr.(udane)\t\tNN śr.(wszystkie)\tNN T/O")
 
 	for _, n := range sizesBest {
 		// Generujemy instancje RAZ — obie metody dostaną DOKŁADNIE TE SAME dane
@@ -100,6 +100,7 @@ func RunAutomatedTests() {
 		sukcesyINF := LimitInstancji - timeoutINF
 		sukcesyNN := LimitInstancji - timeoutNN
 
+		// Średnia tylko z udanych
 		var avgINF, avgNN time.Duration
 		if sukcesyINF > 0 {
 			avgINF = time.Duration(float64(sumTimeINF.Nanoseconds()) / float64(sukcesyINF))
@@ -112,8 +113,14 @@ func RunAutomatedTests() {
 			avgNN = LimitCzasu
 		}
 
-		fmt.Printf("%d\t%v\t\t%d%%\t\t%v\t\t%d%%\n",
-			n, avgINF, timeoutINF, avgNN, timeoutNN)
+		// Średnia ze wszystkich (timeout liczy się jako LimitCzasu)
+		sumAllINF := sumTimeINF + time.Duration(timeoutINF)*LimitCzasu
+		sumAllNN := sumTimeNN + time.Duration(timeoutNN)*LimitCzasu
+		avgAllINF := time.Duration(float64(sumAllINF.Nanoseconds()) / float64(LimitInstancji))
+		avgAllNN := time.Duration(float64(sumAllNN.Nanoseconds()) / float64(LimitInstancji))
+
+		fmt.Printf("%d\t%v\t\t%v\t\t%d%%\t\t%v\t\t%v\t\t%d%%\n",
+			n, avgINF, avgAllINF, timeoutINF*100/LimitInstancji, avgNN, avgAllNN, timeoutNN*100/LimitInstancji)
 
 		if timeoutINF == LimitInstancji && timeoutNN == LimitInstancji {
 			fmt.Printf(">> Best: Blokada przy N=%d. Wszystkie instancje przekroczyły limit.\n", n)

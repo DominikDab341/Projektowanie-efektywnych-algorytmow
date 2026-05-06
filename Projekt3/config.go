@@ -34,12 +34,12 @@ type SAConfig struct {
 
 func DefaultConfig(size int) SAConfig {
 	return SAConfig{
-		InitialTemp: 10000.0,
-		CoolingRate: 0.99,
+		MaxTimeMs:   10000, // 10 sekund
+		InitialTemp: 1000.0,
 		EpochLength: size,
-		MaxTimeMs:   120000, // 2 minuty domyślnie
 		Cooling:     Geometric,
+		CoolingRate: 0.99,
 		InitSol:     RandomInit,
-		NeighborGen: Invert,
+		NeighborGen: Swap,
 	}
 }

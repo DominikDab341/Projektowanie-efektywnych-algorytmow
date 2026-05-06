@@ -46,7 +46,7 @@ func RunAutomaticTests() {
 }
 
 func runTest35(files []string) {
-	fmt.Println("\n--- TEST 3.5: Rozwiązanie początkowe (5 prób na wariant, różne instancje) ---")
+	fmt.Println("\n--- TEST 3.5: Rozwiązanie początkowe (10 prób na wariant, różne instancje) ---")
 	printTableHeader()
 
 	methods := []InitSolutionType{RandomInit, GreedyInit}
@@ -59,7 +59,7 @@ func runTest35(files []string) {
 		for i, method := range methods {
 			var totalCost int
 			var totalTime int64
-			runs := 5
+			runs := 10
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
@@ -84,7 +84,7 @@ func runTest35(files []string) {
 }
 
 func runTest40(files []string) {
-	fmt.Println("\n--- TEST 4.0: Schematy chłodzenia (5 prób na wariant, różne instancje) ---")
+	fmt.Println("\n--- TEST 4.0: Schematy chłodzenia (10 prób na wariant, różne instancje) ---")
 	printTableHeader()
 
 	schemes := []struct {
@@ -103,7 +103,7 @@ func runTest40(files []string) {
 		for _, s := range schemes {
 			var totalCost int
 			var totalTime int64
-			runs := 5
+			runs := 10
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
@@ -137,7 +137,7 @@ func runTest30(files []string) {
         
         var totalCost int
         var totalTime int64
-        runs := 5 // mniej prób dla dużych instancji, żeby oszczędzić czas
+        runs := 10 // 10 prób dla każdego wariantu
 
         for r := 0; r < runs; r++ {
             config := SAConfig{

@@ -73,7 +73,7 @@ func (sa *SimulatedAnnealing) Solve() Result {
 
 		// Obniżanie temperatury według schematu
 		epochs++
-		temperature = sa.coolDown(temperature, epochs)
+		temperature = sa.coolDown(temperature)
 	}
 
 	return Result{
@@ -83,7 +83,7 @@ func (sa *SimulatedAnnealing) Solve() Result {
 	}
 }
 
-func (sa *SimulatedAnnealing) coolDown(currentTemp float64, epoch int) float64 {
+func (sa *SimulatedAnnealing) coolDown(currentTemp float64) float64 {
 	switch sa.Config.Cooling {
 	case Geometric:
 		return currentTemp * sa.Config.CoolingRate
@@ -125,10 +125,10 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 			minDist := math.MaxInt32
 
 			for j := 0; j < sa.Instance.Size; j++ {
-				if !visited[j] && lastNode != j {
-					// W niektórych ATSP dystans może być ujemny na przekątnej (np -1), ignorujemy
+				if !visited[j] && j != lastNode {
+					// Przekątna jest już wykluczona przez warunek j != lastNode
 					dist := sa.Instance.Matrix[lastNode][j]
-					if dist < minDist && dist >= 0 {
+					if dist < minDist {
 						minDist = dist
 						bestNext = j
 					}

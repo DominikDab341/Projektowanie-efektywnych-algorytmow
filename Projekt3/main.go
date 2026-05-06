@@ -23,7 +23,10 @@ func main() {
 		fmt.Println("0. Wyjście")
 		fmt.Print("Wybierz opcję: ")
 
-		reader.Scan()
+		if !reader.Scan() {
+			fmt.Println("\nZakończono wejście (EOF). Zamykanie.")
+			break
+		}
 		opcja := reader.Text()
 
 		switch opcja {
@@ -85,7 +88,7 @@ func main() {
 			fmt.Print("Wybór: ")
 			reader.Scan()
 			switch reader.Text() {
-			case "1": config.Cooling = Geometric; config.CoolingRate = 0.99
+			case "1": config.Cooling = Geometric; config.CoolingRate = 0.9999
 			case "2": config.Cooling = Linear; config.CoolingRate = 0.1
 			case "3": config.Cooling = LundyMees; config.CoolingRate = 0.001
 			default: fmt.Println("Nieznana opcja, pozostawiono domyślne.")
@@ -166,3 +169,4 @@ func getInitTypeString(it InitSolutionType) string {
 	}
 	return "Losowe"
 }
+

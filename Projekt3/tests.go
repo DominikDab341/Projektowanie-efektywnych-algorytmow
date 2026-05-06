@@ -18,13 +18,6 @@ var bestKnownSolutions = map[string]int{
 	"rbg443.atsp":  2720,
 }
 
-type TestResult struct {
-	InstanceName string
-	Parameter    string
-	AvgCost      float64
-	AvgTimeMs    float64
-	PRD          float64
-}
 
 func RunAutomaticTests() {
 	fmt.Println("--- ROZPOCZYNANIE TESTÓW AUTOMATYCZNYCH ---")
@@ -44,10 +37,16 @@ func RunAutomaticTests() {
 
 	// 3. TEST 4.0: Wpływ schematów chłodzenia
 	runTest40(instances)
+
+	// 4. TEST 4.5: Wpływ długości epoki
+	runTest45(instances)
+
+	// 5. TEST 5.0: Wpływ temperatury początkowej
+	runTest50(instances)
 }
 
 func runTest35(files []string) {
-	fmt.Println("\n--- TEST 3.5: Rozwiązanie początkowe (10 prób na wariant, różne instancje) ---")
+	fmt.Println("\n--- TEST 3.5: Rozwiązanie początkowe (5 prób na wariant, różne instancje) ---")
 	printTableHeader()
 
 	methods := []InitSolutionType{RandomInit, GreedyInit}
@@ -60,7 +59,7 @@ func runTest35(files []string) {
 		for i, method := range methods {
 			var totalCost int
 			var totalTime int64
-			runs := 10
+			runs := 5
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
@@ -104,7 +103,7 @@ func runTest40(files []string) {
 		for _, s := range schemes {
 			var totalCost int
 			var totalTime int64
-			runs := 10
+			runs := 5
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
@@ -142,7 +141,7 @@ func runTest30(files []string) {
 
         for r := 0; r < runs; r++ {
             config := SAConfig{
-                MaxTimeMs:   60000, // 60s - dla bardzo dużych jak rbg403 może być potrzebne więcej (do 15 minut)
+                MaxTimeMs:   120000, // 2 minuty - stały budżet czasowy dla wszystkich instancji (polecenie dopuszcza max 15 min)
                 EpochLength: instance.Size * 100,
                 Cooling:     Geometric,
                 CoolingRate: 0.995,
@@ -174,4 +173,88 @@ func printRow(label string, filename string, totalCost int, totalTime int64, run
 func printTableHeader() {
 	fmt.Printf("%-30s | %15s | %15s | %10s\n", "Parametr/Instancja", "Średni Koszt", "Śr. Czas [ms]", "Błąd PRD")
 	fmt.Println(strings.Repeat("-", 79))
+}
+
+func runTest45(files []string) {
+	fmt.Println("\n--- TEST 4.5: Wpływ długości epoki (10 prób na wariant, różne instancje) ---")
+	printTableHeader()
+
+	multipliers := []int{1, 10, 100}
+
+	for _, f := range files {
+		instance, err := ReadFromFile(f)
+		if err != nil { continue }
+
+		for _, mult := range multipliers {
+			var totalCost int
+			var totalTime int64
+			runs := 10
+
+			for r := 0; r < runs; r++ {
+				config := SAConfig{
+					MaxTimeMs:   10000,
+					EpochLength: instance.Size * mult,
+					Cooling:     Geometric,
+					CoolingRate: 0.99,
+					InitSol:     GreedyInit,
+					NeighborGen: Swap,
+				}
+				sa := SimulatedAnnealing{Instance: instance, Config: config}
+				sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
+				
+				res := sa.Solve()
+				totalCost += res.MinCost
+				totalTime += res.Duration.Milliseconds()
+			}
+			label := fmt.Sprintf("%s (Rozmiar x %d)", f, mult)
+			printRow(label, f, totalCost, totalTime, runs)
+		}
+	}
+}
+
+func runTest50(files []string) {
+	fmt.Println("\n--- TEST 5.0: Wpływ temperatury początkowej (10 prób na wariant, różne instancje) ---")
+	printTableHeader()
+
+	temps := []float64{100.0, 1000.0, 10000.0, -1.0}
+
+	for _, f := range files {
+		instance, err := ReadFromFile(f)
+		if err != nil { continue }
+
+		for _, t := range temps {
+			var totalCost int
+			var totalTime int64
+			runs := 10
+
+			for r := 0; r < runs; r++ {
+				config := SAConfig{
+					MaxTimeMs:   10000,
+					EpochLength: instance.Size * 50,
+					Cooling:     Geometric,
+					CoolingRate: 0.99,
+					InitSol:     GreedyInit,
+					NeighborGen: Swap,
+				}
+				sa := SimulatedAnnealing{Instance: instance, Config: config}
+				
+				if t == -1.0 {
+					sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
+				} else {
+					sa.Config.InitialTemp = t
+				}
+				
+				res := sa.Solve()
+				totalCost += res.MinCost
+				totalTime += res.Duration.Milliseconds()
+			}
+			
+			labelStr := fmt.Sprintf("%.0f", t)
+			if t == -1.0 {
+				labelStr = "Auto(Calc)"
+			}
+			label := fmt.Sprintf("%s (%s)", f, labelStr)
+			printRow(label, f, totalCost, totalTime, runs)
+		}
+	}
 }

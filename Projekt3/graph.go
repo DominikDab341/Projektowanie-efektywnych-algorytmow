@@ -22,6 +22,9 @@ func ReadFromFile(filename string) (TSPInstance, error) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	// Domyślny bufor (64 KB) jest za mały dla dużych plików TSPLIB (np. rbg443.atsp ~797 KB).
+	// Zwiększamy do 1 MB, aby uniknąć błędu bufio.ErrTooLong.
+	scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
 	scanner.Split(bufio.ScanLines)
 
 	size := 0
@@ -65,7 +68,7 @@ func ReadFromFile(filename string) (TSPInstance, error) {
 		// parsing headers
 		parts := strings.SplitN(line, ":", 2)
 		key := strings.TrimSpace(parts[0])
-		
+
 		if key == "DIMENSION" {
 			if len(parts) > 1 {
 				size, _ = strconv.Atoi(strings.TrimSpace(parts[1]))

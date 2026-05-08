@@ -8,7 +8,6 @@ import (
 	"strings"
 )
 
-
 func main() {
 	var instance TSPInstance
 	var config SAConfig = DefaultConfig(0)
@@ -43,7 +42,7 @@ func main() {
 				fmt.Printf("Błąd podczas wczytywania: %v\n", err)
 			} else {
 				fmt.Printf("Dane wczytane pomyślnie. Rozmiar: %d\n", instance.Size)
-				config.EpochLength = instance.Size * 100 
+				config.EpochLength = instance.Size * 100
 			}
 
 		case "2":
@@ -63,9 +62,10 @@ func main() {
 			sa := SimulatedAnnealing{Instance: instance, Config: config}
 			initPath := sa.generateInitialSolution()
 			fmt.Printf("\nKoszt początkowy (%s): %d\n", getInitTypeString(config.InitSol), instance.CalculatePathCost(initPath))
+			fmt.Printf("Droga (%d węzłów, indeksy od 1): %s\n", len(initPath), formatPath(initPath))
 
 		case "4":
-			modyfikujUstawienia(&config, instance)
+			modyfikujUstawienia(&config, instance, reader)
 
 		case "5":
 			if instance.Size == 0 {
@@ -76,6 +76,7 @@ func main() {
 			fmt.Println("Optymalizacja w toku...")
 			res := sa.Solve()
 			fmt.Printf("\nZakończono! Najlepszy koszt: %d (Czas: %v)\n", res.MinCost, res.Duration)
+			fmt.Printf("Droga (%d węzłów, indeksy od 1): %s\n", len(res.Path), formatPath(res.Path))
 
 		case "6":
 			RunAutomaticTests()
@@ -90,17 +91,24 @@ func main() {
 	}
 }
 
-func modyfikujUstawienia(config *SAConfig, inst TSPInstance) {
-	reader := bufio.NewScanner(os.Stdin)
-	
+// modyfikujUstawienia pozwala użytkownikowi zmienić parametry algorytmu.
+// Przyjmuje wskaźnik na istniejący scanner (zamiast tworzyć drugi na os.Stdin).
+func modyfikujUstawienia(config *SAConfig, inst TSPInstance, reader *bufio.Scanner) {
+
 	fmt.Println("\n--- MODYFIKACJA USTAWIEŃ ---")
 	fmt.Println("1. Chłodzenie: 1-Geo, 2-Lin, 3-Lundy")
 	fmt.Print("Wybór: ")
 	reader.Scan()
 	switch reader.Text() {
-	case "1": config.Cooling = Geometric; config.CoolingRate = 0.99
-	case "2": config.Cooling = Linear; config.CoolingRate = 1.0
-	case "3": config.Cooling = LundyMees; config.CoolingRate = 0.0001
+	case "1":
+		config.Cooling = Geometric
+		config.CoolingRate = 0.99
+	case "2":
+		config.Cooling = Linear
+		config.CoolingRate = 1.0
+	case "3":
+		config.Cooling = LundyMees
+		config.CoolingRate = 0.0001
 	}
 
 	fmt.Println("2. Start: 1-Losowy, 2-Zachłanny")
@@ -135,4 +143,19 @@ func getInitTypeString(it InitSolutionType) string {
 		return "Zachłanne"
 	}
 	return "Losowe"
+}
+
+// formatPath formatuje ścieżkę jako string z węzłami numerowanymi od 1
+// zgodnie z konwencją TSPLIB (wewnętrznie przechowujemy od 0).
+func formatPath(path []int) string {
+	var sb strings.Builder
+	sb.WriteByte('[')
+	for i, node := range path {
+		if i > 0 {
+			sb.WriteByte(' ')
+		}
+		sb.WriteString(strconv.Itoa(node + 1))
+	}
+	sb.WriteByte(']')
+	return sb.String()
 }

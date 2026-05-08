@@ -29,8 +29,10 @@ func (sa *SimulatedAnnealing) Solve() Result {
 	copy(bestPath, currentPath)
 	bestCost := currentCost
 
+	// Jeden bufor wielokrotnie używany zamiast alokacji przy każdej iteracji
+	neighborBuf := make([]int, sa.Instance.Size)
+
 	temperature := sa.Config.InitialTemp
-	epochs := 0
 
 	// Pętla główna wyżarzania
 	for {
@@ -45,16 +47,17 @@ func (sa *SimulatedAnnealing) Solve() Result {
 		}
 
 		for i := 0; i < sa.Config.EpochLength; i++ {
-			// Generacja sąsiada
-			neighbor := sa.getNeighbor(currentPath)
+			// Generacja sąsiada (w pre-alokowanym buforze)
+			neighbor := sa.getNeighborInto(currentPath, neighborBuf)
 			neighborCost := sa.Instance.CalculatePathCost(neighbor)
 
 			// Akceptacja lub odrzucenie
 			delta := neighborCost - currentCost
 
 			if delta < 0 {
-				// Zawsze akceptujemy lepsze rozwiązanie
-				currentPath = neighbor
+				// Zawsze akceptujemy lepsze rozwiązanie – kopiujemy zawartość bufora,
+				// NIE przypisujemy wskaźnika (currentPath musi mieć własny backing array)
+				copy(currentPath, neighborBuf)
 				currentCost = neighborCost
 
 				if currentCost < bestCost {
@@ -65,14 +68,14 @@ func (sa *SimulatedAnnealing) Solve() Result {
 				// Akceptacja gorszego rozwiązania z prawdopodobieństwem e^(-delta/T)
 				probability := math.Exp(-float64(delta) / temperature)
 				if rand.Float64() < probability {
-					currentPath = neighbor
+					// j.w. – kopiujemy zawartość, nie alias
+					copy(currentPath, neighborBuf)
 					currentCost = neighborCost
 				}
 			}
 		}
 
-		// Obniżanie temperatury według schematu
-		epochs++
+		// Obniżanie temperatury według wybranego schematu
 		temperature = sa.coolDown(temperature)
 	}
 
@@ -154,9 +157,10 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 	return path
 }
 
-func (sa *SimulatedAnnealing) getNeighbor(currentPath []int) []int {
-	neighbor := make([]int, len(currentPath))
-	copy(neighbor, currentPath)
+// getNeighborInto generuje losowego sąsiada ścieżki currentPath i zapisuje wynik
+// do przekazanego bufora buf (unika alokacji na każdej iteracji pętli głównej).
+func (sa *SimulatedAnnealing) getNeighborInto(currentPath []int, buf []int) []int {
+	copy(buf, currentPath)
 
 	n := len(currentPath)
 	i := rand.Intn(n)
@@ -167,18 +171,18 @@ func (sa *SimulatedAnnealing) getNeighbor(currentPath []int) []int {
 	}
 
 	if sa.Config.NeighborGen == Swap {
-		neighbor[i], neighbor[j] = neighbor[j], neighbor[i]
+		buf[i], buf[j] = buf[j], buf[i]
 	} else if sa.Config.NeighborGen == Invert {
 		if i > j {
 			i, j = j, i
 		}
 		// Odwrócenie podciągu od i do j włącznie
 		for k := 0; k < (j-i+1)/2; k++ {
-			neighbor[i+k], neighbor[j-k] = neighbor[j-k], neighbor[i+k]
+			buf[i+k], buf[j-k] = buf[j-k], buf[i+k]
 		}
 	}
 
-	return neighbor
+	return buf
 }
 
 // Funkcja pomocnicza pozwalająca automatycznie dobrać temperaturę początkową
@@ -189,9 +193,11 @@ func (sa *SimulatedAnnealing) CalculateInitialTemp(prob float64, samples int) fl
 
 	currentPath := sa.generateInitialSolution()
 	currentCost := sa.Instance.CalculatePathCost(currentPath)
+	// Jeden bufor dla próbkowania
+	neighborBuf := make([]int, sa.Instance.Size)
 
 	for k := 0; k < samples; k++ {
-		neighbor := sa.getNeighbor(currentPath)
+		neighbor := sa.getNeighborInto(currentPath, neighborBuf)
 		neighborCost := sa.Instance.CalculatePathCost(neighbor)
 		delta := neighborCost - currentCost
 

@@ -23,13 +23,13 @@ const (
 )
 
 type SAConfig struct {
-	InitialTemp  float64
-	CoolingRate  float64 // alpha dla goemetric, beta dla LundyMees, zmniejszenie o stałą dla linear
-	EpochLength  int
-	MaxTimeMs    int // kryterium stopu w milisekundach
-	Cooling      CoolingScheme
-	InitSol      InitSolutionType
-	NeighborGen  NeighborType
+	InitialTemp float64
+	CoolingRate float64 // alpha dla geometric, beta dla LundyMees, zmniejszenie o stałą dla linear
+	EpochLength int
+	MaxTimeMs   int // kryterium stopu w milisekundach
+	Cooling     CoolingScheme
+	InitSol     InitSolutionType
+	NeighborGen NeighborType
 }
 
 func DefaultConfig(size int) SAConfig {

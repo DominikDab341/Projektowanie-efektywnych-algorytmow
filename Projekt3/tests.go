@@ -66,7 +66,7 @@ func runTest35(files []string) {
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
-					MaxTimeMs:   10000, // 10s na próbę
+					MaxTimeMs:   600000, // 10 minut na próbę
 					EpochLength: instance.Size * 50,
 					Cooling:     Geometric,
 					CoolingRate: 0.99,
@@ -119,7 +119,7 @@ func runTest40(files []string) {
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
-					MaxTimeMs:   10000,
+					MaxTimeMs:   600000, // 10 minut na próbę
 					EpochLength: instance.Size * 50,
 					Cooling:     s.id,
 					CoolingRate: s.rate,
@@ -220,7 +220,7 @@ func runTest45(files []string) {
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
-					MaxTimeMs:   10000,
+					MaxTimeMs:   600000, // 10 minut na próbę
 					EpochLength: instance.Size * mult,
 					Cooling:     Geometric,
 					CoolingRate: 0.99,
@@ -263,7 +263,7 @@ func runTest50(files []string) {
 
 			for r := 0; r < runs; r++ {
 				config := SAConfig{
-					MaxTimeMs:   10000,
+					MaxTimeMs:   600000, // 10 minut na próbę
 					EpochLength: instance.Size * 50,
 					Cooling:     Geometric,
 					CoolingRate: 0.99,

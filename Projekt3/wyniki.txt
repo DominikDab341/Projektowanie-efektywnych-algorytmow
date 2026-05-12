@@ -1,0 +1,149 @@
+--- TEST 3.0: Skalowalność (Czas i Błąd vs Rozmiar) ---
+Parametr/Instancja             |    Średni Koszt |   Śr. Czas [ms] |   Błąd PRD
+-------------------------------------------------------------------------------
+br17.atsp (17)                 |           39.00 |          344.90 |      0.00%
+ftv33.atsp (34)                |         1308.80 |          673.90 |      1.77%
+p43.atsp (43)                  |         5621.70 |         1000.60 |      0.03%
+ft53.atsp (53)                 |         6956.50 |         1189.10 |      0.75%
+ft70.atsp (70)                 |        39208.30 |         1658.50 |      1.38%
+kro124p.atsp (100)             |        37135.60 |         2711.70 |      2.50%
+ftv170.atsp (171)              |         3007.00 |         5138.20 |      9.15%
+rbg323.atsp (323)              |         1379.70 |        11217.50 |      4.05%
+rbg403.atsp (403)              |         2470.50 |        16710.30 |      0.22%
+rbg443.atsp (443)              |         2728.30 |        18869.00 |      0.31%
+
+--- TEST 3.5: Rozwiązanie początkowe (10 prób na wariant, różne instancje) ---
+Parametr/Instancja             |    Średni Koszt |   Śr. Czas [ms] |   Błąd PRD
+-------------------------------------------------------------------------------
+br17.atsp (Losowe)             |           39.00 |           76.10 |      0.00%
+br17.atsp (Zachłanne)          |           39.00 |           77.50 |      0.00%
+ftv33.atsp (Losowe)            |         1314.90 |          167.10 |      2.25%
+ftv33.atsp (Zachłanne)         |         1327.50 |          167.40 |      3.23%
+p43.atsp (Losowe)              |         5623.70 |          246.50 |      0.07%
+p43.atsp (Zachłanne)           |         5626.40 |          250.40 |      0.11%
+ft53.atsp (Losowe)             |         7093.20 |          295.40 |      2.73%
+ft53.atsp (Zachłanne)          |         7101.80 |          297.10 |      2.85%
+ft70.atsp (Losowe)             |        39372.70 |          415.60 |      1.81%
+ft70.atsp (Zachłanne)          |        39533.90 |          413.30 |      2.23%
+kro124p.atsp (Losowe)          |        37836.00 |          677.50 |      4.43%
+kro124p.atsp (Zachłanne)       |        37679.70 |          677.00 |      4.00%
+ftv170.atsp (Losowe)           |         3152.80 |         1238.50 |     14.44%
+ftv170.atsp (Zachłanne)        |         3148.10 |         1252.80 |     14.27%
+rbg323.atsp (Losowe)           |         1410.10 |         2708.40 |      6.34%
+rbg323.atsp (Zachłanne)        |         1424.30 |         2926.40 |      7.41%
+rbg403.atsp (Losowe)           |         2472.80 |         3918.90 |      0.32%
+rbg403.atsp (Zachłanne)        |         2476.20 |         4030.30 |      0.45%
+rbg443.atsp (Losowe)           |         2735.10 |         4569.70 |      0.56%
+rbg443.atsp (Zachłanne)        |         2733.20 |         4734.80 |      0.49%
+
+--- TEST 4.0: Schematy chłodzenia (10 prób na wariant, różne instancje) ---
+Parametr/Instancja             |    Średni Koszt |   Śr. Czas [ms] |   Błąd PRD
+-------------------------------------------------------------------------------
+br17.atsp (Geometric)          |           39.00 |           75.60 |      0.00%
+br17.atsp (Linear)             |           39.00 |          491.20 |      0.00%
+br17.atsp (Lundy-Mees)         |           39.00 |        49810.50 |      0.00%
+ftv33.atsp (Geometric)         |         1332.30 |          167.10 |      3.60%
+ftv33.atsp (Linear)            |         1370.00 |         1052.50 |      6.53%
+ftv33.atsp (Lundy-Mees)        |         1304.30 |       100204.10 |      1.42%
+p43.atsp (Geometric)           |         5624.10 |          250.80 |      0.07%
+p43.atsp (Linear)              |         5699.90 |         1404.30 |      1.42%
+p43.atsp (Lundy-Mees)          |         5621.50 |       133012.90 |      0.03%
+ft53.atsp (Geometric)          |         7061.40 |          295.70 |      2.27%
+ft53.atsp (Linear)             |         7333.80 |         1775.70 |      6.21%
+ft53.atsp (Lundy-Mees)         |         7240.70 |       165045.40 |      4.86%
+ft70.atsp (Geometric)          |        39442.30 |          413.20 |      1.99%
+ft70.atsp (Linear)             |        40287.70 |         2484.90 |      4.18%
+ft70.atsp (Lundy-Mees)         |        40058.80 |       225833.20 |      3.58%
+kro124p.atsp (Geometric)       |        37857.70 |          677.40 |      4.49%
+kro124p.atsp (Linear)          |        41746.80 |         3811.70 |     15.23%
+kro124p.atsp (Lundy-Mees)      |        40628.30 |       341334.00 |     12.14%
+ftv170.atsp (Geometric)        |         3196.70 |         1251.00 |     16.03%
+ftv170.atsp (Linear)           |         3880.60 |         7789.90 |     40.86%
+ftv170.atsp (Lundy-Mees)       |         3147.50 |       600000.30 |     14.25%
+rbg323.atsp (Geometric)        |         1418.10 |         2785.50 |      6.95%
+rbg323.atsp (Linear)           |         1613.40 |        20272.90 |     21.67%
+rbg323.atsp (Lundy-Mees)       |         1364.90 |       600000.90 |      2.93%
+rbg403.atsp (Geometric)        |         2475.80 |         4087.80 |      0.44%
+rbg403.atsp (Linear)           |         2649.10 |        28912.70 |      7.47%
+rbg403.atsp (Lundy-Mees)       |         2467.00 |       600001.00 |      0.08%
+rbg443.atsp (Geometric)        |         2733.20 |         4709.70 |      0.49%
+rbg443.atsp (Linear)           |         2961.70 |        33728.80 |      8.89%
+rbg443.atsp (Lundy-Mees)       |         2723.60 |       600002.00 |      0.13%
+
+--- TEST 4.5: Wpływ długości epoki (10 prób na wariant, różne instancje) ---
+Parametr/Instancja             |    Średni Koszt |   Śr. Czas [ms] |   Błąd PRD
+-------------------------------------------------------------------------------
+br17.atsp (Rozmiar x 1)        |           39.00 |            1.30 |      0.00%
+br17.atsp (Rozmiar x 10)       |           39.00 |           15.20 |      0.00%
+br17.atsp (Rozmiar x 100)      |           39.00 |          152.70 |      0.00%
+ftv33.atsp (Rozmiar x 1)       |         1447.20 |            5.20 |     12.53%
+ftv33.atsp (Rozmiar x 10)      |         1349.40 |           33.40 |      4.93%
+ftv33.atsp (Rozmiar x 100)     |         1332.60 |          338.90 |      3.62%
+p43.atsp (Rozmiar x 1)         |         5637.50 |            5.50 |      0.31%
+p43.atsp (Rozmiar x 10)        |         5625.10 |           50.20 |      0.09%
+p43.atsp (Rozmiar x 100)       |         5622.80 |          502.40 |      0.05%
+ft53.atsp (Rozmiar x 1)        |         8033.20 |            5.90 |     16.34%
+ft53.atsp (Rozmiar x 10)       |         7400.00 |           59.40 |      7.17%
+ft53.atsp (Rozmiar x 100)      |         7037.70 |          593.90 |      1.92%
+ft70.atsp (Rozmiar x 1)        |        41514.50 |            8.40 |      7.35%
+ft70.atsp (Rozmiar x 10)       |        40238.00 |           83.30 |      4.05%
+ft70.atsp (Rozmiar x 100)      |        39322.60 |          830.30 |      1.68%
+kro124p.atsp (Rozmiar x 1)     |        44176.60 |           14.10 |     21.93%
+kro124p.atsp (Rozmiar x 10)    |        39270.20 |          135.70 |      8.39%
+kro124p.atsp (Rozmiar x 100)   |        37468.20 |         1358.90 |      3.42%
+ftv170.atsp (Rozmiar x 1)      |         3959.20 |           24.70 |     43.71%
+ftv170.atsp (Rozmiar x 10)     |         3414.60 |          251.50 |     23.94%
+ftv170.atsp (Rozmiar x 100)    |         3068.10 |         2546.40 |     11.36%
+rbg323.atsp (Rozmiar x 1)      |         1643.00 |           60.80 |     23.91%
+rbg323.atsp (Rozmiar x 10)     |         1480.60 |          562.00 |     11.66%
+rbg323.atsp (Rozmiar x 100)    |         1393.10 |         5608.50 |      5.06%
+rbg403.atsp (Rozmiar x 1)      |         2610.90 |           79.60 |      5.92%
+rbg403.atsp (Rozmiar x 10)     |         2494.80 |          814.70 |      1.21%
+rbg403.atsp (Rozmiar x 100)    |         2472.00 |         7983.20 |      0.28%
+rbg443.atsp (Rozmiar x 1)      |         2899.60 |           95.20 |      6.60%
+rbg443.atsp (Rozmiar x 10)     |         2754.70 |          938.30 |      1.28%
+rbg443.atsp (Rozmiar x 100)    |         2729.00 |         9421.00 |      0.33%
+
+--- TEST 5.0: Wpływ temperatury początkowej (10 prób na wariant, różne instancje) ---
+Parametr/Instancja             |    Średni Koszt |   Śr. Czas [ms] |   Błąd PRD
+-------------------------------------------------------------------------------
+br17.atsp (100)                |           39.00 |           59.20 |      0.00%
+br17.atsp (1000)               |           39.00 |           71.40 |      0.00%
+br17.atsp (10000)              |           39.00 |           82.50 |      0.00%
+br17.atsp (Auto(Calc))         |           39.00 |           76.50 |      0.00%
+ftv33.atsp (100)               |         1301.60 |          117.10 |      1.21%
+ftv33.atsp (1000)              |         1324.00 |          141.60 |      2.95%
+ftv33.atsp (10000)             |         1321.50 |          166.50 |      2.76%
+ftv33.atsp (Auto(Calc))        |         1331.00 |          165.80 |      3.50%
+p43.atsp (100)                 |         5625.10 |          161.60 |      0.09%
+p43.atsp (1000)                |         5623.30 |          197.60 |      0.06%
+p43.atsp (10000)               |         5624.20 |          228.40 |      0.07%
+p43.atsp (Auto(Calc))          |         5624.50 |          247.80 |      0.08%
+ft53.atsp (100)                |         7092.30 |          190.70 |      2.71%
+ft53.atsp (1000)               |         7098.40 |          234.10 |      2.80%
+ft53.atsp (10000)              |         7117.90 |          275.90 |      3.08%
+ft53.atsp (Auto(Calc))         |         7064.10 |          296.40 |      2.30%
+ft70.atsp (100)                |        39502.40 |          263.80 |      2.14%
+ft70.atsp (1000)               |        39552.30 |          324.20 |      2.27%
+ft70.atsp (10000)              |        39687.40 |          383.70 |      2.62%
+ft70.atsp (Auto(Calc))         |        39556.60 |          415.40 |      2.28%
+kro124p.atsp (100)             |        38150.60 |          395.00 |      5.30%
+kro124p.atsp (1000)            |        37882.30 |          482.70 |      4.56%
+kro124p.atsp (10000)           |        38183.10 |          569.70 |      5.39%
+kro124p.atsp (Auto(Calc))      |        37250.10 |          680.20 |      2.82%
+ftv170.atsp (100)              |         3161.90 |          858.90 |     14.77%
+ftv170.atsp (1000)             |         3094.10 |         1042.20 |     12.31%
+ftv170.atsp (10000)            |         3151.10 |         1220.20 |     14.38%
+ftv170.atsp (Auto(Calc))       |         3233.00 |         1265.10 |     17.35%
+rbg323.atsp (100)              |         1423.70 |         2166.50 |      7.37%
+rbg323.atsp (1000)             |         1414.70 |         2638.70 |      6.69%
+rbg323.atsp (10000)            |         1419.60 |         3163.90 |      7.06%
+rbg323.atsp (Auto(Calc))       |         1416.00 |         2798.10 |      6.79%
+rbg403.atsp (100)              |         2477.00 |         3099.90 |      0.49%
+rbg403.atsp (1000)             |         2475.40 |         3782.40 |      0.42%
+rbg403.atsp (10000)            |         2476.10 |         4412.70 |      0.45%
+rbg403.atsp (Auto(Calc))       |         2475.20 |         3978.90 |      0.41%
+rbg443.atsp (100)              |         2735.40 |         3696.40 |      0.57%
+rbg443.atsp (1000)             |         2731.90 |         4432.70 |      0.44%
+rbg443.atsp (10000)            |         2742.10 |         5258.60 |      0.81%
+rbg443.atsp (Auto(Calc))       |         2736.40 |         4721.80 |      0.60%

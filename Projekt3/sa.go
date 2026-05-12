@@ -41,21 +41,18 @@ func (sa *SimulatedAnnealing) Solve() Result {
 			break
 		}
 
-		// Kryterium stopu - niska temperatura (np. poniżej 0.001)
+		// Kryterium stopu - niska temperatura 
 		if temperature < 0.001 {
 			break
 		}
 
 		for i := 0; i < sa.Config.EpochLength; i++ {
-			// Generacja sąsiada i obliczenie kosztu (z użyciem O(1) Delta evaluation)
+			// Generacja sąsiada i obliczenie kosztu
 			_, neighborCost := sa.getNeighborIntoAndCost(currentPath, neighborBuf, currentCost)
 
-			// Akceptacja lub odrzucenie
 			delta := neighborCost - currentCost
 
 			if delta < 0 {
-				// Zawsze akceptujemy lepsze rozwiązanie – kopiujemy zawartość bufora,
-				// NIE przypisujemy wskaźnika (currentPath musi mieć własny backing array)
 				copy(currentPath, neighborBuf)
 				currentCost = neighborCost
 
@@ -64,10 +61,8 @@ func (sa *SimulatedAnnealing) Solve() Result {
 					bestCost = currentCost
 				}
 			} else {
-				// Akceptacja gorszego rozwiązania z prawdopodobieństwem e^(-delta/T)
 				probability := math.Exp(-float64(delta) / temperature)
 				if rand.Float64() < probability {
-					// j.w. – kopiujemy zawartość, nie alias
 					copy(currentPath, neighborBuf)
 					currentCost = neighborCost
 				}
@@ -90,7 +85,6 @@ func (sa *SimulatedAnnealing) coolDown(currentTemp float64) float64 {
 	case Geometric:
 		return currentTemp * sa.Config.CoolingRate
 	case Linear:
-		// Linear może szybko spaść poniżej 0, więc ograniczamy
 		newTemp := currentTemp - sa.Config.CoolingRate
 		if newTemp < 0.0001 {
 			return 0.0001
@@ -127,7 +121,6 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 			minDist := math.MaxInt32
 
 			for j := 0; j < sa.Instance.Size; j++ {
-				// jawne ignorowanie pętli własnej (zgodnie z poleceniem)
 				if lastNode == j {
 					continue
 				}
@@ -144,7 +137,6 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 				path[i] = bestNext
 				visited[bestNext] = true
 			} else {
-				// Jeśli nie udało się znaleźć (bardzo dziwny graf), to bierzemy cokolwiek
 				for j := 0; j < sa.Instance.Size; j++ {
 					if !visited[j] {
 						path[i] = j
@@ -160,7 +152,6 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 }
 
 // getNeighborIntoAndCost generuje losowego sąsiada ścieżki currentPath i zapisuje wynik do bufora buf.
-// Optymalizacja: Zwraca nową ścieżkę oraz jej koszt obliczony w czasie O(1) (Delta Evaluation) zamiast O(N).
 func (sa *SimulatedAnnealing) getNeighborIntoAndCost(currentPath []int, buf []int, currentCost int) ([]int, int) {
 	copy(buf, currentPath)
 	n := len(currentPath)
@@ -181,7 +172,6 @@ func (sa *SimulatedAnnealing) getNeighborIntoAndCost(currentPath []int, buf []in
 
 		// O(1) Delta evaluation dla Swap
 		if i == 0 || j == n-1 || j == i+1 {
-			// Skrajne przypadki z zawijaniem pętli lub sąsiednie - bezpieczny fallback O(N)
 			newCost = sa.Instance.CalculatePathCost(buf)
 		} else {
 			prevI, nextI := i-1, i+1
@@ -213,7 +203,6 @@ func (sa *SimulatedAnnealing) getNeighborIntoAndCost(currentPath []int, buf []in
 
 		// O(1) Delta evaluation dla Insert
 		if i == 0 || j == 0 || i == n-1 || j == n-1 || math.Abs(float64(i-j)) == 1 {
-			// Zabezpieczenie dla krawędzi tablicy i elementów bezpośrednio sąsiadujących
 			newCost = sa.Instance.CalculatePathCost(buf)
 		} else {
 			prevI, nextI := i-1, i+1
@@ -266,7 +255,6 @@ func (sa *SimulatedAnnealing) CalculateInitialTemp(prob float64, samples int) fl
 			countPositiveDeltas++
 		}
 
-		// Kopiujemy wartości, zamiast przepinać wskaźnik do współdzielonego bufora!
 		copy(currentPath, neighbor)
 		currentCost = neighborCost
 	}

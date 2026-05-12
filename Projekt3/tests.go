@@ -21,7 +21,7 @@ var bestKnownSolutions = map[string]int{
 func RunAutomaticTests() {
 	fmt.Println("--- ROZPOCZYNANIE TESTÓW AUTOMATYCZNYCH ---")
 
-	// Lista 10 plików o mocno różniących się rozmiarach
+	// Lista 10 plików 
 	instances := []string{
 		"br17.atsp", "ftv33.atsp", "p43.atsp", "ft53.atsp",
 		"ft70.atsp", "kro124p.atsp", "ftv170.atsp", "rbg323.atsp",
@@ -158,11 +158,11 @@ func runTest30(files []string) {
 
 		var totalCost int64
 		var totalTime int64
-		runs := 10 // 10 prób dla każdego wariantu
+		runs := 10 
 
 		for r := 0; r < runs; r++ {
 			config := SAConfig{
-				MaxTimeMs:   120000, // 2 minuty - stały budżet czasowy (polecenie dopuszcza max 15 min)
+				MaxTimeMs:   120000, // 2 minuty - stały budżet czasowy 
 				EpochLength: instance.Size * 100,
 				Cooling:     Geometric,
 				CoolingRate: 0.995,
@@ -179,7 +179,7 @@ func runTest30(files []string) {
 	}
 }
 
-// printRow oblicza średni koszt, średni czas i wskaźnik PRD (Percent Relative Deviation)
+// printRow oblicza średni koszt, średni czas i wskaźnik PRD
 // względem optymalnego rozwiązania, a następnie drukuje wiersz tabeli wyników.
 // totalCost jest int64, aby uniknąć przepełnienia przy dużych instancjach i wielu przebiegach.
 func printRow(label string, filename string, totalCost int64, totalTime int64, runs int) {

@@ -1,0 +1,61 @@
+Temat: Implementacja i analiza efektywności algorytmu Tabu Search lub Symulowanego
+Wyżarzania dla problemu komiwojażera
+Należy zaimplementować oraz dokonać analizy efektywności algorytmu Tabu Search (TS) lub
+Symulowanego Wyżarzania (SW) dla problemu komiwojażera (TSP).
+
+Podczas realizacji zadania należy przyjąć następujące założenia:
+
+- na dysku google'a w katalogu TSPLIB/ATSP znajdują pliki przeznaczone do badań
+- do badań należy użyć co najmniej 10 plików z podanego katalogu o mocno różniących się
+rozmiarach. Obowiązkowo użyć pliku ftv170,
+- parametry w algorytmach dobrać tak, aby błąd względny nie przekraczał 30% OPT
+(optymalna długość ścieżki zawarta jest w pliku solutions-ATSP.txt)
+- używane struktury danych powinny być alokowane dynamicznie (w zależności od aktualnego
+rozmiaru problemu),
+Symulowanie wyżarzanie - ocenianie:
+Wyznaczyć:
+3.0 – zależność czasu uzyskania wyniku w funkcji rozmiaru instancji (przy założonym maksymalnym
+czasie 15 minut) oraz zależność funkcji błędu w funkcji rozmiaru instancji
+3.5 – określić wpływ rozwiązania początkowego na czas rozwiązania i błąd
+4.0 – określić wpływ co najmniej dwóch schematów chłodzenia na czas i błąd
+4.5 - wpływ długości epoki na czas i błąd
+5.0 - wpływ temperatury początkowej na czas i błąd rozwiązania
+Aby uzyskać inną ocenę niż 3,0 należy zrealizować także wszystkie punkty z niższych ocen
+
+Tabu search – ocenianie:
+Wyznaczyć:
+3.0 - zależność czasu uzyskania wyniku w funkcji rozmiaru instancji (przy założonym maksymalnym
+czasie 15 minut) oraz zależność wielkości błędu w funkcji rozmiaru instancji
+..3.5 – określić wpływ rozwiązania początkowego na czas rozwiązania i błąd
+..4,0 - wpływ długości listy tabu na błąd
+..4,5 - wpływ wielkości kadencji na błąd,
+..5,0 - wpływ kryterium aspiracji na błąd,
+Aby uzyskać inną ocenę niż 3,0 należy zrealizować także wszystkie punkty z niższych ocen
+
+20.04.
+Wymagania dotyczące programu
+-program powinien umożliwić wczytanie danych testowych z pliku
+- implementacje algorytmów należy dokonać zgodnie z obiektowym paradygmatem
+programowania,
+- używanie „okienek” nie jest konieczne i nie wpływa na ocenę (wystarczy wersja konsolowa),
+- kod źródłowy powinien być komentowany.
+
+Menu programu (do testów przez prowadzącego) powinno zawierać następujące opcje:
+1.Wczytanie danych z pliku
+2.Wprowadzenie kryterium stopu (w postaci czasu działania algorytmu)
+
+Obliczanie rozwiązania początkowego
+Modyfikację domyślnych ustawień algorytmu
+Uruchomienie algorytmu, wyświetlenie długości drogi i samej drogi
+Sprawozdanie powinno zawierać:
+a) wstęp teoretyczny zawierający opis algorytmu i sam algorytmy(w postaci pseudokodu lub
+graficznie), omówienie jego elementów (lista tabu, dywersyfikacja, opis (definicja) sąsiedztwa itd.) dla
+TS; analogicznie dla SW.
+b) wyniki w postaci tabel i wykresów (należy wypisać nazwy plików użytych do badań)
+c)wnioski
+d)literatura
+
+UWAGA 1
+Algorytm TS musi zawierać elementy losowości – nie może to być algorytm deterministyczny.
+
+Dodatkowe materiały internetowe (proszę też wyszukać sobie inne):

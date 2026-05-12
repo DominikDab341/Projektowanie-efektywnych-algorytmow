@@ -241,16 +241,7 @@ func (sa *SimulatedAnnealing) getNeighborIntoAndCost(currentPath []int, buf []in
 			}
 		}
 
-	} else if sa.Config.NeighborGen == Invert {
-		if i > j {
-			i, j = j, i
-		}
-		// Odwrócenie podciągu od i do j włącznie
-		for k := 0; k < (j-i+1)/2; k++ {
-			buf[i+k], buf[j-k] = buf[j-k], buf[i+k]
-		}
-		newCost = sa.Instance.CalculatePathCost(buf)
-	}
+	} 
 
 	return buf, newCost
 }

@@ -71,7 +71,7 @@ func runTest35(files []string) {
 					Cooling:     Geometric,
 					CoolingRate: 0.99,
 					InitSol:     method,
-					NeighborGen: Swap,
+					NeighborGen: Insert,
 				}
 				sa := SimulatedAnnealing{Instance: instance, Config: config}
 				sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
@@ -124,7 +124,7 @@ func runTest40(files []string) {
 					Cooling:     s.id,
 					CoolingRate: s.rate,
 					InitSol:     GreedyInit,
-					NeighborGen: Swap,
+					NeighborGen: Insert,
 				}
 				sa := SimulatedAnnealing{Instance: instance, Config: config}
 				sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
@@ -167,7 +167,7 @@ func runTest30(files []string) {
 				Cooling:     Geometric,
 				CoolingRate: 0.995,
 				InitSol:     GreedyInit,
-				NeighborGen: Swap,
+				NeighborGen: Insert,
 			}
 			sa := SimulatedAnnealing{Instance: instance, Config: config}
 			sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
@@ -225,7 +225,7 @@ func runTest45(files []string) {
 					Cooling:     Geometric,
 					CoolingRate: 0.99,
 					InitSol:     GreedyInit,
-					NeighborGen: Swap,
+					NeighborGen: Insert,
 				}
 				sa := SimulatedAnnealing{Instance: instance, Config: config}
 				sa.Config.InitialTemp = sa.CalculateInitialTemp(0.99, 500)
@@ -268,7 +268,7 @@ func runTest50(files []string) {
 					Cooling:     Geometric,
 					CoolingRate: 0.99,
 					InitSol:     GreedyInit,
-					NeighborGen: Swap,
+					NeighborGen: Insert,
 				}
 				sa := SimulatedAnnealing{Instance: instance, Config: config}
 

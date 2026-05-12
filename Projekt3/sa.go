@@ -47,9 +47,8 @@ func (sa *SimulatedAnnealing) Solve() Result {
 		}
 
 		for i := 0; i < sa.Config.EpochLength; i++ {
-			// Generacja sąsiada (w pre-alokowanym buforze)
-			neighbor := sa.getNeighborInto(currentPath, neighborBuf)
-			neighborCost := sa.Instance.CalculatePathCost(neighbor)
+			// Generacja sąsiada i obliczenie kosztu (z użyciem O(1) Delta evaluation)
+			_, neighborCost := sa.getNeighborIntoAndCost(currentPath, neighborBuf, currentCost)
 
 			// Akceptacja lub odrzucenie
 			delta := neighborCost - currentCost
@@ -128,8 +127,11 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 			minDist := math.MaxInt32
 
 			for j := 0; j < sa.Instance.Size; j++ {
-				if !visited[j] && j != lastNode {
-					// Przekątna jest już wykluczona przez warunek j != lastNode
+				// jawne ignorowanie pętli własnej (zgodnie z poleceniem)
+				if lastNode == j {
+					continue
+				}
+				if !visited[j] {
 					dist := sa.Instance.Matrix[lastNode][j]
 					if dist < minDist {
 						minDist = dist
@@ -157,11 +159,10 @@ func (sa *SimulatedAnnealing) generateInitialSolution() []int {
 	return path
 }
 
-// getNeighborInto generuje losowego sąsiada ścieżki currentPath i zapisuje wynik
-// do przekazanego bufora buf (unika alokacji na każdej iteracji pętli głównej).
-func (sa *SimulatedAnnealing) getNeighborInto(currentPath []int, buf []int) []int {
+// getNeighborIntoAndCost generuje losowego sąsiada ścieżki currentPath i zapisuje wynik do bufora buf.
+// Optymalizacja: Zwraca nową ścieżkę oraz jej koszt obliczony w czasie O(1) (Delta Evaluation) zamiast O(N).
+func (sa *SimulatedAnnealing) getNeighborIntoAndCost(currentPath []int, buf []int, currentCost int) ([]int, int) {
 	copy(buf, currentPath)
-
 	n := len(currentPath)
 	i := rand.Intn(n)
 	j := rand.Intn(n)
@@ -170,8 +171,76 @@ func (sa *SimulatedAnnealing) getNeighborInto(currentPath []int, buf []int) []in
 		j = rand.Intn(n)
 	}
 
+	newCost := currentCost
+
 	if sa.Config.NeighborGen == Swap {
+		if i > j {
+			i, j = j, i
+		}
 		buf[i], buf[j] = buf[j], buf[i]
+
+		// O(1) Delta evaluation dla Swap
+		if i == 0 || j == n-1 || j == i+1 {
+			// Skrajne przypadki z zawijaniem pętli lub sąsiednie - bezpieczny fallback O(N)
+			newCost = sa.Instance.CalculatePathCost(buf)
+		} else {
+			prevI, nextI := i-1, i+1
+			prevJ, nextJ := j-1, j+1
+
+			removed := sa.Instance.Matrix[currentPath[prevI]][currentPath[i]] +
+				sa.Instance.Matrix[currentPath[i]][currentPath[nextI]] +
+				sa.Instance.Matrix[currentPath[prevJ]][currentPath[j]] +
+				sa.Instance.Matrix[currentPath[j]][currentPath[nextJ]]
+			added := sa.Instance.Matrix[currentPath[prevI]][currentPath[j]] +
+				sa.Instance.Matrix[currentPath[j]][currentPath[nextI]] +
+				sa.Instance.Matrix[currentPath[prevJ]][currentPath[i]] +
+				sa.Instance.Matrix[currentPath[i]][currentPath[nextJ]]
+			newCost = currentCost - removed + added
+		}
+
+	} else if sa.Config.NeighborGen == Insert {
+		elem := buf[i]
+		if i < j {
+			for k := i; k < j; k++ {
+				buf[k] = buf[k+1]
+			}
+		} else {
+			for k := i; k > j; k-- {
+				buf[k] = buf[k-1]
+			}
+		}
+		buf[j] = elem
+
+		// O(1) Delta evaluation dla Insert
+		if i == 0 || j == 0 || i == n-1 || j == n-1 || math.Abs(float64(i-j)) == 1 {
+			// Zabezpieczenie dla krawędzi tablicy i elementów bezpośrednio sąsiadujących
+			newCost = sa.Instance.CalculatePathCost(buf)
+		} else {
+			prevI, nextI := i-1, i+1
+			if i < j {
+				// removed: prevI->i, i->nextI, j->j+1
+				// added: prevI->nextI, j->i, i->j+1
+				removed := sa.Instance.Matrix[currentPath[prevI]][currentPath[i]] +
+					sa.Instance.Matrix[currentPath[i]][currentPath[nextI]] +
+					sa.Instance.Matrix[currentPath[j]][currentPath[j+1]]
+				added := sa.Instance.Matrix[currentPath[prevI]][currentPath[nextI]] +
+					sa.Instance.Matrix[currentPath[j]][currentPath[i]] +
+					sa.Instance.Matrix[currentPath[i]][currentPath[j+1]]
+				newCost = currentCost - removed + added
+			} else {
+				// i > j
+				// removed: prevI->i, i->nextI, j-1->j
+				// added: prevI->nextI, j-1->i, i->j
+				removed := sa.Instance.Matrix[currentPath[prevI]][currentPath[i]] +
+					sa.Instance.Matrix[currentPath[i]][currentPath[nextI]] +
+					sa.Instance.Matrix[currentPath[j-1]][currentPath[j]]
+				added := sa.Instance.Matrix[currentPath[prevI]][currentPath[nextI]] +
+					sa.Instance.Matrix[currentPath[j-1]][currentPath[i]] +
+					sa.Instance.Matrix[currentPath[i]][currentPath[j]]
+				newCost = currentCost - removed + added
+			}
+		}
+
 	} else if sa.Config.NeighborGen == Invert {
 		if i > j {
 			i, j = j, i
@@ -180,9 +249,10 @@ func (sa *SimulatedAnnealing) getNeighborInto(currentPath []int, buf []int) []in
 		for k := 0; k < (j-i+1)/2; k++ {
 			buf[i+k], buf[j-k] = buf[j-k], buf[i+k]
 		}
+		newCost = sa.Instance.CalculatePathCost(buf)
 	}
 
-	return buf
+	return buf, newCost
 }
 
 // Funkcja pomocnicza pozwalająca automatycznie dobrać temperaturę początkową
@@ -197,8 +267,7 @@ func (sa *SimulatedAnnealing) CalculateInitialTemp(prob float64, samples int) fl
 	neighborBuf := make([]int, sa.Instance.Size)
 
 	for k := 0; k < samples; k++ {
-		neighbor := sa.getNeighborInto(currentPath, neighborBuf)
-		neighborCost := sa.Instance.CalculatePathCost(neighbor)
+		neighbor, neighborCost := sa.getNeighborIntoAndCost(currentPath, neighborBuf, currentCost)
 		delta := neighborCost - currentCost
 
 		if delta > 0 {
@@ -206,7 +275,8 @@ func (sa *SimulatedAnnealing) CalculateInitialTemp(prob float64, samples int) fl
 			countPositiveDeltas++
 		}
 
-		currentPath = neighbor
+		// Kopiujemy wartości, zamiast przepinać wskaźnik do współdzielonego bufora!
+		copy(currentPath, neighbor)
 		currentCost = neighborCost
 	}
 

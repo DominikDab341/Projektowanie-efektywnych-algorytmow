@@ -20,6 +20,7 @@ type NeighborType int
 const (
 	Swap NeighborType = iota
 	Invert
+	Insert
 )
 
 type SAConfig struct {
@@ -40,6 +41,6 @@ func DefaultConfig(size int) SAConfig {
 		Cooling:     Geometric,
 		CoolingRate: 0.99,
 		InitSol:     RandomInit,
-		NeighborGen: Swap,
+		NeighborGen: Insert,
 	}
 }
